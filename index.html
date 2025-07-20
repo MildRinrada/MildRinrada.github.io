@@ -1,14 +1,211 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>Mild Rinrada Portfolio</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portfolio - Mild Rinrada</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: "SukhumvitSet", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      margin: 0;
+      background: #f5f7fa;
+      color: #333;
+    }
+    header {
+      background-color: #2a9d8f;
+      color: white;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+    }
+    header h1 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 2.4rem;
+    }
+    main {
+      max-width: 960px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    section {
+      margin-bottom: 3rem;
+    }
+    h2 {
+      border-bottom: 3px solid #e76f51;
+      padding-bottom: 0.3rem;
+      margin-bottom: 1.5rem;
+      color: #264653;
+    }
+    /* Carousel */
+    .carousel {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto 2rem auto;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgb(0 0 0 / 0.15);
+      background: white;
+    }
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      width: 100%;
+    }
+    .slides img {
+      width: 100%;
+      flex-shrink: 0;
+      object-fit: cover;
+      max-height: 450px;
+    }
+    .carousel-buttons {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+      padding: 0 1rem;
+      pointer-events: none;
+    }
+    .btn {
+      background: rgba(0,0,0,0.4);
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      pointer-events: all;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      line-height: 1;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    .btn:hover {
+      background: rgba(0,0,0,0.7);
+    }
+
+    /* Tech logos */
+    .tech-logos {
+      display: flex;
+      gap: 1.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .tech-logos img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.1));
+      transition: transform 0.3s ease;
+    }
+    .tech-logos img:hover {
+      transform: scale(1.1);
+    }
+
+    /* About */
+    .about p {
+      line-height: 1.6;
+      font-size: 1.1rem;
+      max-width: 720px;
+      margin: 0 auto;
+      color: #444;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1rem;
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
+      .tech-logos img {
+        width: 48px;
+        height: 48px;
+      }
+      .carousel {
+        max-width: 100%;
+      }
+    }
+  </style>
 </head>
-<body class="bg-light">
-  <div class="container py-5">
-    <h1 class="text-primary">สวัสดี! ฉันคือ Mild Rinrada</h1>
-    <p class="lead">นี่คือพอร์ตโฟลิโอที่สร้างด้วย GitHub Pages</p>
-  </div>
+<body>
+  <header>
+    <h1>Mild Rinrada - Portfolio</h1>
+  </header>
+  <main>
+    <section class="about">
+      <h2>เกี่ยวกับฉัน</h2>
+      <p>
+        สวัสดีค่ะ ฉัน Mild Rinrada เป็น Full Stack Developer ที่มีประสบการณ์
+        ในการพัฒนาเว็บแอปด้วยเทคโนโลยีหลากหลาย ทั้ง Frontend และ Backend
+        รวมถึงการออกแบบ UI/UX ที่ใช้งานง่ายและสวยงาม
+      </p>
+    </section>
+
+    <section class="portfolio">
+      <h2>ผลงานเด่น</h2>
+      <div class="carousel" aria-label="สไลด์โชว์ผลงาน">
+        <div class="slides">
+          <img src="https://via.placeholder.com/800x450?text=Project+1" alt="ภาพหน้าจอโปรเจคที่ 1" />
+          <img src="https://via.placeholder.com/800x450?text=Project+2" alt="ภาพหน้าจอโปรเจคที่ 2" />
+          <img src="https://via.placeholder.com/800x450?text=Project+3" alt="ภาพหน้าจอโปรเจคที่ 3" />
+        </div>
+        <div class="carousel-buttons">
+          <button class="btn prev" aria-label="ก่อนหน้า">&#10094;</button>
+          <button class="btn next" aria-label="ถัดไป">&#10095;</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="technologies">
+      <h2>เทคโนโลยีที่ใช้</h2>
+      <div class="tech-logos" aria-label="โลโก้ภาษาและเทคโนโลยี">
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5" title="HTML5" />
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3" title="CSS3" />
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript" title="JavaScript" />
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" title="Python" />
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP" title="PHP" />
+      </div>
+    </section>
+  </main>
+  <footer>
+    &copy; 2025 Mild Rinrada. All rights reserved.
+  </footer>
+
+  <script>
+    // Carousel JS
+    const slides = document.querySelector(".slides");
+    const images = slides.querySelectorAll("img");
+    const prevBtn = document.querySelector(".prev");
+    const nextBtn = document.querySelector(".next");
+    let index = 0;
+
+    function showSlide(i) {
+      if (i < 0) index = images.length - 1;
+      else if (i >= images.length) index = 0;
+      else index = i;
+      slides.style.transform = `translateX(${-index * 100}%)`;
+    }
+
+    prevBtn.addEventListener("click", () => showSlide(index - 1));
+    nextBtn.addEventListener("click", () => showSlide(index + 1));
+
+    // Auto slide every 5 seconds
+    setInterval(() => showSlide(index + 1), 5000);
+  </script>
 </body>
 </html>
