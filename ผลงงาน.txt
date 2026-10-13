@@ -1,0 +1,104 @@
+FictionThai: Full-Stack Novel & Writing Platform
+
+A Thai fiction platform designed and developed from scratch as a solo full-stack project.
+
+Built with Next.js, TypeScript, Tailwind CSS, Go/Gin, PostgreSQL, Redis, and optional FastAPI ML services.
+
+The core idea is flexible fiction formats: one story can support both prose and chat-style content, while switching formats only changes metadata without rewriting the original content.
+
+The platform also supports guest-first reading, writer studios, multiple pen names, privacy-focused visibility controls, community features, moderation/audit systems, and secure file handling.
+
+AI is designed as an assistant, not a replacement. Thai language tools provide spelling, repetition, summarization, and character-consistency analysis, while writers always decide whether to accept suggestions. AI processing runs locally and does not use user content for training.
+
+Currently an in-development project running locally, with the API designed independently from the UI for future mobile clients.
+
+
+---
+
+KawaiiBake: Full-Stack Bakery Tutorial Platform
+
+A Thai bakery learning platform designed as more than a recipe CRUD app.
+
+Built with Python 3.12, Django 5, DRF, PostgreSQL, Redis, Celery, Next.js 16, React 19, TypeScript, Tailwind CSS v4, and Docker.
+
+The platform combines structured courses with enrolment-gated lessons, reusable quiz questions, verifiable certificates, an AI baking assistant, community gallery and Q&A, and gamified learning through XP, levels, streaks, badges, and rewards.
+
+The backend is API-only, with 28 domain apps and 145 REST endpoints organized through strict service, repository, selector, and validator layers. OpenAPI contracts are generated from DRF and compiled into TypeScript, allowing backend changes to surface as frontend type errors.
+
+Engineering focuses on reliability and security, including pluggable AI providers with an offline mock, swappable authentication, Argon2 hashing, rate limiting, enumeration-safe password recovery, threat monitoring with append-only evidence logs, and activity-derived progress with reconciliation checks.
+
+
+---
+
+NK Digital Library
+
+- Developed and maintained the official website for Matthayom Wat Nongkhaem School.
+- Implemented both frontend (HTML, CSS, Bootstrap) and backend (PHP) functionalities.
+- Collaborated with the team to fix bugs, optimize performance, and ensure system stability.
+
+
+---
+
+มูลนิธิศูนย์นมแม่ประเทศไทย
+
+- Developed and maintained the official website for The Thai Breastfeeding Center Foundation.
+- Implemented both frontend (HTML, CSS, Bootstrap) and backend (PHP) functionalities.
+- Collaborated with the team to fix bugs, optimize performance, and ensure system stability.
+
+---
+
+SecureSight : Full-Stack Web Security Scanning & Risk Management System
+
+A passive web security assessment platform designed to help security teams identify, analyze, and manage website security risks without intrusive attacks or modifying target data.
+
+Built with a Go-based backend API and Angular dashboard, the platform evaluates websites through normal HTTP requests and server responses, analyzing security headers, cookies, CORS, TLS configuration, redirects, and web technologies.
+
+The system goes beyond reporting missing configurations by providing security context that explains how each finding should be interpreted within the overall security posture. It includes modular security checks, web crawling, technology fingerprinting, risk scoring, vulnerability triage, team assignment, notifications, scan comparison, scheduled scans, and multi-format reporting.
+
+Security features include role-based access control, two-factor authentication, audit logging, and machine-to-machine API access. Reports can be generated in PDF, HTML, JSON, and CSV with multilingual support.
+
+The project focuses on bridging automated security scanning with human review, helping teams prioritize remediation based on risk and business impact rather than isolated technical findings.
+
+Technologies: Go, Gin, GORM, MySQL, JWT, Angular, Angular Material, Chart.js, Docker, Docker Compose, Nginx, SMTP.
+
+---
+
+Thai Sentence Emotion Detection Website
+
+Developed a web application for detecting emotions from Thai sentences using Machine Learning techniques. The system analyzes Thai text and classifies user input into four emotion categories: happiness, sadness, love, and anger.
+
+The application was built with Flask and uses a Naive Bayes classification model with Thai word segmentation powered by attacut. The trained model is saved and reused for efficient prediction without retraining every time the application runs.
+
+Technologies Used: Python, Flask, Machine Learning (Naive Bayes), Thai NLP (attacut), HTML/CSS, Excel Dataset
+
+This project demonstrates the application of Natural Language Processing (NLP) and Machine Learning for Thai language emotion classification.
+
+---
+
+เว็บแอพลิเคชันแนะนำแล็ปท็อป (Web Application For Laptops Recommendation)
+
+The special problem project involved developing a web application for laptop recommendation, aiming to suggest efficient and suitable laptops for users. Utilizing data processing and a rule-based expert system, the application analyzed the specifications of each laptop. Users provided basic information, and the system then recommended the most suitable laptops.
+
+
+---
+
+Customer Service Github
+
+ลิงค์โปรเจคอยู่ C:\Customer Service Github
+
+
+---
+
+Happy Paws Clinic
+
+C:\Portfolio Project\Happy Paws Clinic
+
+----
+
+MewBark AI
+
+C:\Portfolio Project\MewBark AI
+
+แชทบอท AI ใน Line ใช้ NestJS และ OpenAI
+
+------

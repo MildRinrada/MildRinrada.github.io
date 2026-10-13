@@ -1,211 +1,129 @@
-<!DOCTYPE html>
-<html lang="th">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Portfolio - Mild Rinrada</title>
-  <style>
-    /* Reset & base */
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      font-family: "SukhumvitSet", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      margin: 0;
-      background: #f5f7fa;
-      color: #333;
-    }
-    header {
-      background-color: #2a9d8f;
-      color: white;
-      padding: 1.5rem 2rem;
-      text-align: center;
-      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
-    }
-    header h1 {
-      margin: 0;
-      font-weight: 700;
-      font-size: 2.4rem;
-    }
-    main {
-      max-width: 960px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    section {
-      margin-bottom: 3rem;
-    }
-    h2 {
-      border-bottom: 3px solid #e76f51;
-      padding-bottom: 0.3rem;
-      margin-bottom: 1.5rem;
-      color: #264653;
-    }
-    /* Carousel */
-    .carousel {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-      margin: 0 auto 2rem auto;
-      overflow: hidden;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgb(0 0 0 / 0.15);
-      background: white;
-    }
-    .slides {
-      display: flex;
-      transition: transform 0.5s ease-in-out;
-      width: 100%;
-    }
-    .slides img {
-      width: 100%;
-      flex-shrink: 0;
-      object-fit: cover;
-      max-height: 450px;
-    }
-    .carousel-buttons {
-      position: absolute;
-      top: 50%;
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      transform: translateY(-50%);
-      padding: 0 1rem;
-      pointer-events: none;
-    }
-    .btn {
-      background: rgba(0,0,0,0.4);
-      border: none;
-      color: white;
-      font-size: 2rem;
-      cursor: pointer;
-      pointer-events: all;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-      line-height: 1;
-      user-select: none;
-      transition: background 0.3s ease;
-    }
-    .btn:hover {
-      background: rgba(0,0,0,0.7);
-    }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>MildRinrada Town · Rinrada, Full-Stack Developer</title>
+  <meta name="description" content="Rinrada (Mild), Full-Stack Developer. A small 3D town where every building is a system I designed and built, from the storefront down to the database.">
+  <meta property="og:title" content="MildRinrada Town · Rinrada, Full-Stack Developer">
+  <meta property="og:description" content="Every building in this town is a system I designed and built.">
+  <meta name="theme-color" content="#a9d8ff">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%23ff8a6b%27/%3E%3Cstop offset=%271%27 stop-color=%27%23ff5277%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2732%27 fill=%27url(%23g)%27/%3E%3Ctext x=%2732%27 y=%2741%27 font-family=%27Arial,sans-serif%27 font-weight=%27700%27 font-size=%2726%27 text-anchor=%27middle%27 fill=%27white%27%3EMR%3C/text%3E%3C/svg%3E">
 
-    /* Tech logos */
-    .tech-logos {
-      display: flex;
-      gap: 1.6rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .tech-logos img {
-      width: 64px;
-      height: 64px;
-      object-fit: contain;
-      filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.1));
-      transition: transform 0.3s ease;
-    }
-    .tech-logos img:hover {
-      transform: scale(1.1);
-    }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
 
-    /* About */
-    .about p {
-      line-height: 1.6;
-      font-size: 1.1rem;
-      max-width: 720px;
-      margin: 0 auto;
-      color: #444;
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 1rem;
-      color: #888;
-      font-size: 0.9rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.8rem;
-      }
-      .tech-logos img {
-        width: 48px;
-        height: 48px;
-      }
-      .carousel {
-        max-width: 100%;
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
       }
     }
-  </style>
+  </script>
 </head>
 <body>
-  <header>
-    <h1>Mild Rinrada - Portfolio</h1>
+  <div class="sky sky-day" aria-hidden="true"></div>
+  <div class="sky sky-night" aria-hidden="true"></div>
+  <div class="sky sky-blueprint" aria-hidden="true"></div>
+  <div class="scan" aria-hidden="true"></div>
+
+  <main id="stage" class="stage" aria-label="3D town. Use the building buttons or the list view to explore projects."></main>
+
+  <header class="hud-top">
+    <a class="brand" href="./" aria-label="MildRinrada Town home">
+      <span class="brand-mark" aria-hidden="true">MR</span>
+      <span class="brand-text">
+        <strong>MildRinrada Town</strong>
+        <small>Rinrada · Full-Stack Developer</small>
+      </span>
+    </a>
+
+    <nav class="controls" aria-label="View controls">
+      <button id="btn-time" class="ctl" type="button" aria-pressed="false">
+        <svg class="i i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        <svg class="i i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
+        <span class="ctl-label">Night</span>
+      </button>
+      <button id="btn-blueprint" class="ctl" type="button" aria-pressed="false">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9M15 9v12"/></svg>
+        <span class="ctl-label">Blueprint</span>
+      </button>
+      <button id="btn-list" class="ctl" type="button" aria-haspopup="dialog">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+        <span class="ctl-label">List view</span>
+      </button>
+      <a id="btn-resume" class="ctl ctl-accent" href="#" download hidden>
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        <span class="ctl-label">Résumé</span>
+      </a>
+    </nav>
   </header>
-  <main>
-    <section class="about">
-      <h2>เกี่ยวกับฉัน</h2>
-      <p>
-        สวัสดีค่ะ ฉัน Mild Rinrada เป็น Full Stack Developer ที่มีประสบการณ์
-        ในการพัฒนาเว็บแอปด้วยเทคโนโลยีหลากหลาย ทั้ง Frontend และ Backend
-        รวมถึงการออกแบบ UI/UX ที่ใช้งานง่ายและสวยงาม
-      </p>
-    </section>
 
-    <section class="portfolio">
-      <h2>ผลงานเด่น</h2>
-      <div class="carousel" aria-label="สไลด์โชว์ผลงาน">
-        <div class="slides">
-          <img src="https://via.placeholder.com/800x450?text=Project+1" alt="ภาพหน้าจอโปรเจคที่ 1" />
-          <img src="https://via.placeholder.com/800x450?text=Project+2" alt="ภาพหน้าจอโปรเจคที่ 2" />
-          <img src="https://via.placeholder.com/800x450?text=Project+3" alt="ภาพหน้าจอโปรเจคที่ 3" />
+  <div class="hud-bottom">
+    <p class="hint"><span class="hint-desktop">Drag to orbit · Scroll to zoom · Click a building</span><span class="hint-touch">Drag to orbit · Pinch to zoom · Tap a building</span></p>
+    <p class="legend legend-night">Lit windows = running in production</p>
+    <p class="legend legend-blueprint">
+      <span class="key key-frontend">Frontend</span>
+      <span class="key key-backend">Backend</span>
+      <span class="key key-infra">Infra &amp; tools</span>
+      <span class="key key-data">Database</span>
+    </p>
+    <a class="credit" href="https://kenney.nl" target="_blank" rel="noopener">3D models by Kenney · CC0</a>
+  </div>
+
+  <aside id="panel" class="panel" aria-labelledby="panel-title" inert>
+    <button class="panel-close" type="button" aria-label="Close details">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="panel-body"></div>
+  </aside>
+
+  <section id="list" class="list" role="dialog" aria-modal="true" aria-labelledby="list-title" inert>
+    <div class="list-inner">
+      <header class="list-head">
+        <div>
+          <p class="eyebrow">Rinrada (Mild) · Full-Stack Developer</p>
+          <h2 id="list-title">Everything in town</h2>
         </div>
-        <div class="carousel-buttons">
-          <button class="btn prev" aria-label="ก่อนหน้า">&#10094;</button>
-          <button class="btn next" aria-label="ถัดไป">&#10095;</button>
-        </div>
+        <button class="list-close ctl" type="button">
+          <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          <span class="ctl-label">Back to town</span>
+        </button>
+      </header>
+      <p class="list-note" hidden></p>
+      <div class="list-grid"></div>
+    </div>
+  </section>
+
+  <div id="intro" class="intro" inert>
+    <div class="intro-card" role="dialog" aria-labelledby="intro-title">
+      <p class="eyebrow intro-eyebrow">Rinrada (Mild) · Full-Stack Developer</p>
+      <h1 id="intro-title">Welcome to MildRinrada Town</h1>
+      <p class="intro-body">Every building here is a system I designed and built. Click one to step inside, or switch on <b>Blueprint</b> to see the stack under every roof: frontend on top, database in the basement.</p>
+      <div class="intro-actions">
+        <button class="btn btn-primary" type="button" data-intro="explore">Explore the town</button>
+        <button class="btn btn-ghost" type="button" data-intro="list">Just show me the list</button>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <section class="technologies">
-      <h2>เทคโนโลยีที่ใช้</h2>
-      <div class="tech-logos" aria-label="โลโก้ภาษาและเทคโนโลยี">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5" title="HTML5" />
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS3" title="CSS3" />
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript" title="JavaScript" />
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python" title="Python" />
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg" alt="PHP" title="PHP" />
-      </div>
-    </section>
-  </main>
-  <footer>
-    &copy; 2025 Mild Rinrada. All rights reserved.
-  </footer>
+  <div id="loader" class="loader" role="status" aria-live="polite">
+    <div class="loader-card">
+      <div class="loader-bar"><span></span></div>
+      <p>Building the town… <span class="loader-pct">0%</span></p>
+    </div>
+  </div>
 
-  <script>
-    // Carousel JS
-    const slides = document.querySelector(".slides");
-    const images = slides.querySelectorAll("img");
-    const prevBtn = document.querySelector(".prev");
-    const nextBtn = document.querySelector(".next");
-    let index = 0;
+  <noscript>
+    <div class="noscript">
+      <h1>Rinrada (Mild), Full-Stack Developer</h1>
+      <p>This portfolio is a 3D town and needs JavaScript. My code lives at <a href="https://github.com/MildRinrada">github.com/MildRinrada</a>.</p>
+    </div>
+  </noscript>
 
-    function showSlide(i) {
-      if (i < 0) index = images.length - 1;
-      else if (i >= images.length) index = 0;
-      else index = i;
-      slides.style.transform = `translateX(${-index * 100}%)`;
-    }
-
-    prevBtn.addEventListener("click", () => showSlide(index - 1));
-    nextBtn.addEventListener("click", () => showSlide(index + 1));
-
-    // Auto slide every 5 seconds
-    setInterval(() => showSlide(index + 1), 5000);
-  </script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
