@@ -1,9 +1,0 @@
-Bookdose Co.,Ltd, Full-stack Developer ทำงานแบบผสม
-กรกฎาคม 2025
-
-
-Developed a full-stack online learning platform, handling both frontend and backend development. Collaborated with stakeholders to analyze requirements, design system features, and deliver web applications tailored to the needs of government agencies. Built and maintained scalable, user-friendly functionalities while ensuring application quality and security.
-
-
-
-Technologies: PHP, Python, JavaScript (Node.js, Next.js, NestJS), HTML, CSS, n8n, and OWASP ZAP.

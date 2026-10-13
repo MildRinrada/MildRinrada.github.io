@@ -1,0 +1,132 @@
+/* Printing the town prints the CV instead (Ctrl+P or the Résumé / Print CV buttons). */
+
+@page {
+  size: A4;
+  margin: 12mm 14mm;
+}
+
+html,
+body {
+  height: auto !important;
+  overflow: visible !important;
+  background: #fff !important;
+}
+
+body > *:not(#cv) {
+  display: none !important;
+}
+
+.cv {
+  display: block !important;
+  color: #141a26;
+  font: 400 9.6pt/1.45 'IBM Plex Sans Thai', system-ui, sans-serif;
+}
+
+.cv-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #ff6b4a;
+}
+
+.cv-photo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cv-photo.photo-fallback {
+  display: grid;
+  place-items: center;
+  background: #ff6b4a;
+  color: #fff;
+  font-weight: 700;
+}
+
+.cv h1 {
+  margin: 0;
+  font: 700 19pt/1.1 'Space Grotesk', 'IBM Plex Sans Thai', sans-serif;
+}
+
+.cv-role {
+  margin: 2px 0 0;
+  color: #ff5a36;
+  font-weight: 600;
+}
+
+.cv-contact {
+  margin: 3px 0 0;
+  color: #4d5a72;
+  font-size: 8.8pt;
+}
+
+.cv section {
+  margin-top: 10px;
+  break-inside: avoid;
+}
+
+.cv h2 {
+  margin: 0 0 4px;
+  color: #4d5a72;
+  font: 600 8.4pt/1.3 'IBM Plex Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cv p {
+  margin: 0;
+}
+
+.cv ul {
+  margin: 3px 0 0;
+  padding-left: 15px;
+}
+
+.cv li {
+  margin: 1px 0;
+}
+
+.cv-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cv-row span {
+  color: #4d5a72;
+  white-space: nowrap;
+}
+
+.cv-skill + .cv-skill {
+  margin-top: 1px;
+}
+
+.cv-projects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 16px;
+}
+
+.cv-proj {
+  break-inside: avoid;
+}
+
+.cv-proj-title span {
+  color: #b45309;
+  font-size: 8.6pt;
+}
+
+.cv-stack {
+  color: #4d5a72;
+  font-size: 8.4pt;
+}
+
+.cv-foot {
+  margin-top: 12px;
+  padding-top: 6px;
+  border-top: 1px solid #dde3ec;
+  color: #4d5a72;
+  font-size: 8.4pt;
+}
