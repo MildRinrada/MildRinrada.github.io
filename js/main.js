@@ -148,34 +148,75 @@ function photo(className) {
   return img;
 }
 
-const caption = (im, i) => im.caption || (i === 0 ? t('img.cover') : t('img.shot', { n: i + 1 }));
+// A gallery item is a video when it says so or when the file is one (.mp4 / .webm / .mov).
+const isVideo = (item) => item.type === 'video' || /\.(mp4|webm|mov)$/i.test(item.src);
+const firstImage = (p) => p.media?.images?.find((item) => !isVideo(item));
 
-function shotImg(im, p, i, loading = 'lazy') {
-  const img = el('img', { src: im.src, alt: `${title(p)}: ${caption(im, i)}`, loading, decoding: 'async' });
-  img.addEventListener('error', () => img.replaceWith(el('span', { class: 'g-missing', text: t('img.missing', { src: im.src }) })), { once: true });
+// "Cover" is the first picture and screenshots count pictures only, so a video in front doesn't shift them.
+function caption(item, i, list) {
+  if (item.caption) return item.caption;
+  if (isVideo(item)) return t('img.video');
+  const n = list.slice(0, i).filter((x) => !isVideo(x)).length;
+  return n === 0 ? t('img.cover') : t('img.shot', { n: n + 1 });
+}
+
+const missing = (item) => el('span', { class: 'g-missing', text: t(isVideo(item) ? 'img.videoMissing' : 'img.missing', { src: item.src }) });
+
+function shotImg(im, p, i, loading = 'lazy', list = p.media?.images ?? [im]) {
+  const img = el('img', { src: im.src, alt: `${title(p)}: ${caption(im, i, list)}`, loading, decoding: 'async' });
+  img.addEventListener('error', () => img.replaceWith(missing(im)), { once: true });
   return img;
 }
 
+// Full player for the panel and the lightbox; a silent first frame for thumbnails.
+function videoEl(item, p, { thumb = false, autoplay = false } = {}) {
+  const v = el('video', {
+    src: thumb ? `${item.src}#t=0.5` : item.src,
+    poster: item.poster,
+    controls: !thumb,
+    autoplay,
+    muted: thumb,
+    playsinline: true,
+    preload: 'metadata',
+    'aria-label': `${title(p)}: ${t('img.video')}`,
+  });
+  if (thumb) v.muted = true;
+  v.addEventListener('error', () => v.replaceWith(missing(item)), { once: true });
+  return v;
+}
+
 function gallery(p) {
-  const imgs = p.media.images;
-  const main = el('button', { class: 'g-main', type: 'button', 'aria-label': t('img.open') });
+  const items = p.media.images;
+  const main = el('div', { class: 'g-main' });
   const cap = el('figcaption', { class: 'g-cap' });
-  const thumbs = imgs.length > 1 ? el('div', { class: 'g-thumbs' }) : null;
-  let index = 0;
+  const thumbs = items.length > 1 ? el('div', { class: 'g-thumbs' }) : null;
   const show = (i) => {
-    index = i;
-    main.replaceChildren(shotImg(imgs[i], p, i, 'eager'), el('span', { class: 'g-zoom', 'aria-hidden': 'true', text: '⤢' }));
-    cap.textContent = [caption(imgs[i], i), imgs.length > 1 ? `${i + 1} / ${imgs.length}` : ''].filter(Boolean).join(' · ');
+    const item = items[i];
+    const open = () => openLightbox(p, i);
+    main.replaceChildren(
+      isVideo(item)
+        ? el('div', { class: 'g-video' }, videoEl(item, p), el('button', { class: 'g-expand', type: 'button', 'aria-label': t('img.open'), onclick: open, text: '⤢' }))
+        : el('button', { class: 'g-image', type: 'button', 'aria-label': t('img.open'), onclick: open }, shotImg(item, p, i, 'eager'), el('span', { class: 'g-zoom', 'aria-hidden': 'true', text: '⤢' })),
+    );
+    cap.textContent = [caption(item, i, items), items.length > 1 ? `${i + 1} / ${items.length}` : ''].filter(Boolean).join(' · ');
     thumbs?.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-current', String(j === i)));
   };
-  imgs.forEach((im, i) => thumbs?.append(el('button', { class: 'g-thumb', type: 'button', 'aria-label': t('img.show', { n: i + 1 }), onclick: () => show(i) }, shotImg(im, p, i))));
-  main.addEventListener('click', () => openLightbox(p, index));
+  items.forEach((item, i) =>
+    thumbs?.append(
+      el(
+        'button',
+        { class: `g-thumb${isVideo(item) ? ' g-thumb-video' : ''}`, type: 'button', 'aria-label': isVideo(item) ? t('img.playVideo') : t('img.show', { n: i + 1 }), onclick: () => show(i) },
+        isVideo(item) ? [videoEl(item, p, { thumb: true }), el('span', { class: 'g-play', 'aria-hidden': 'true', text: '▶' })] : shotImg(item, p, i),
+      ),
+    ),
+  );
   show(0);
   return el('figure', { class: 'p-gallery' }, main, cap, thumbs);
 }
 
 let lb = null;
 function openLightbox(p, i) {
+  for (const v of $$('video', panel)) v.pause(); // one player at a time
   lb = { p, i };
   renderLightbox();
   lightbox.classList.add('open');
@@ -185,7 +226,10 @@ function openLightbox(p, i) {
 function renderLightbox() {
   const imgs = lb.p.media.images;
   const im = imgs[lb.i];
-  $('.lb-figure', lightbox).replaceChildren(shotImg(im, lb.p, lb.i, 'eager'), el('figcaption', { text: [title(lb.p), caption(im, lb.i), `${lb.i + 1} / ${imgs.length}`].join(' · ') }));
+  $('.lb-figure', lightbox).replaceChildren(
+    isVideo(im) ? videoEl(im, lb.p, { autoplay: true }) : shotImg(im, lb.p, lb.i, 'eager'),
+    el('figcaption', { text: [title(lb.p), caption(im, lb.i, imgs), `${lb.i + 1} / ${imgs.length}`].join(' · ') }),
+  );
   $('.lb-prev', lightbox).hidden = $('.lb-next', lightbox).hidden = imgs.length < 2;
 }
 function stepLightbox(d) {
@@ -196,6 +240,7 @@ function stepLightbox(d) {
 }
 function closeLightbox() {
   lb = null;
+  $('.lb-figure', lightbox).replaceChildren(); // stops a video that was playing
   lightbox.classList.remove('open');
   lightbox.inert = true;
 }
@@ -339,13 +384,13 @@ function closePanel() {
 
 // ---------- list view ----------
 function card(p) {
-  const cover = p.media?.images?.[0];
+  const cover = firstImage(p);
   const eyebrow = p.kind === 'work' ? `${t('eyebrow.experience')} · ${tp(p, 'period')}` : p.kind === 'education' ? t('eyebrow.education') : tp(p, 'category');
   const count = match?.result.perPlace.get(p.id);
   return el(
     'article',
     { class: `card${count ? ' card-match' : ''}` },
-    cover && el('div', { class: 'card-cover' }, shotImg(cover, p, 0)),
+    cover && el('div', { class: 'card-cover' }, shotImg(cover, p, p.media.images.indexOf(cover))),
     el('div', { class: 'card-top' }, el('span', { class: 'card-icon', 'aria-hidden': 'true', text: p.icon }), el('p', { class: 'eyebrow', text: eyebrow })),
     el('h3', { text: title(p) }),
     el('p', { class: 'card-tagline', text: tp(p, 'tagline') }),
@@ -803,6 +848,19 @@ function wireUi() {
   $('.brand-mark').replaceChildren(photo('brand-photo'));
 }
 
+// Say why the town didn't start, so the fix is obvious instead of a page of cards with no reason.
+function whyNo3d(err) {
+  if (location.protocol === 'file:') return 'list.noFile';
+  try {
+    const c = document.createElement('canvas');
+    if (!(c.getContext('webgl2') || c.getContext('webgl'))) return 'list.noWebgl';
+  } catch {
+    return 'list.noWebgl';
+  }
+  if (/import|module|fetch|load/i.test(String(err?.message))) return 'list.noNetwork';
+  return 'list.no3d';
+}
+
 function setProgress(f) {
   const n = Math.round(Math.min(1, f) * 100);
   $('.loader-bar span').style.width = `${n}%`;
@@ -837,7 +895,7 @@ async function boot() {
   } catch (err) {
     console.error('3D town unavailable, showing the list instead.', err);
     body.classList.add('no-3d');
-    openList('list.no3d');
+    openList(whyNo3d(err));
   }
 
   terminal = createTerminal({

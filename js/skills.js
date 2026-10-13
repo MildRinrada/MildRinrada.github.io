@@ -46,10 +46,10 @@ export const SKILLS = [
   { name: 'OpenAPI / Swagger', find: /\bopenapi\b|\bswagger\b/i, have: /^openapi/i, places: ['kawaiibake', 'happy-paws-clinic'] },
   { name: 'GraphQL', find: /\bgraphql\b/i, have: /^graphql/i },
   { name: 'WebSocket / real-time', find: /\bwebsockets?\b|\bsocket\.io\b|\breal-?time\b/i, have: /websocket/i },
-  { name: 'ORM', find: /\borm\b|\bprisma\b|\bsqlalchemy\b|\bentity framework\b|\bef core\b|\bgorm\b/i, have: /prisma|gorm|ef core/i },
+  { name: 'ORM', find: /\borm\b|\bprisma\b|\bsqlalchemy\b|\bentity framework\b|\bef core\b|\bgorm\b/i, have: /prisma|gorm|ef core|sqlalchemy/i },
   { name: 'Background jobs & queues', find: /\bcelery\b|\bbullmq\b|\bjob queues?\b|\bmessage queues?\b|\bbackground (?:jobs?|tasks?)\b/i, have: /celery|bullmq/i },
   { name: 'Kafka / RabbitMQ', find: /\bkafka\b|\brabbitmq\b/i, have: /kafka|rabbitmq/i },
-  { name: 'Testing', find: /\bunit tests?\b|\btesting\b|\bjest\b|\bpytest\b|\btdd\b|\bautomated tests?\b/i, have: /^(jest|pytest)/i, places: ['happy-paws-clinic'] },
+  { name: 'Testing', find: /\bunit tests?\b|\btesting\b|\bjest\b|\bpytest\b|\btdd\b|\bautomated tests?\b/i, have: /^(jest|pytest)/i, places: ['happy-paws-clinic', 'customer-service'] },
 
   // data
   { name: 'PostgreSQL', find: /\bpostgres(?:ql)?\b/i, have: /^postgres/i },
@@ -69,8 +69,8 @@ export const SKILLS = [
   { name: 'Linux', find: /\blinux\b|\bubuntu\b/i, have: /^linux/i },
 
   // security & domains
-  { name: 'Web security / OWASP', find: /\bowasp\b|\bsecurity\b|\bvulnerabilit(?:y|ies)\b|\bpenetration\b|\bpentest/i, have: /owasp/i, places: ['securesight', 'kawaiibake'] },
-  { name: 'Auth (JWT / OAuth / 2FA)', find: /\bjwt\b|\boauth\b|\bsso\b|\bauthenticat(?:e|ion)\b|\b2fa\b|\bmfa\b/i, have: /^(jwt|nextauth)/i, places: ['securesight', 'happy-paws-clinic', 'kawaiibake'] },
+  { name: 'Web security / OWASP', find: /\bowasp\b|\bsecurity\b|\bvulnerabilit(?:y|ies)\b|\bpenetration\b|\bpentest/i, have: /owasp/i, places: ['securesight', 'kawaiibake', 'customer-service'] },
+  { name: 'Auth (JWT / OAuth / 2FA)', find: /\bjwt\b|\boauth\b|\bsso\b|\bauthenticat(?:e|ion)\b|\b2fa\b|\bmfa\b/i, have: /^(jwt|nextauth)/i, places: ['securesight', 'happy-paws-clinic', 'kawaiibake', 'customer-service'] },
   { name: 'Machine learning / NLP', find: /\bmachine learning\b|\bml\b|\bnlp\b|\bnatural language\b|\bscikit|\bclassification\b/i, have: /naive bayes|attacut|ml services/i },
   { name: 'AI / LLM', find: /\bllms?\b|\bgen(?:erative)?\s*ai\b|\bopenai\b|\bgpt\b|\bchatbots?\b|\bai\b/i, have: /openai|pgvector/i, places: ['fictionthai', 'kawaiibake', 'customer-service'] },
   { name: 'LINE Messaging API', find: /\bline\s*(?:oa|official account|messaging|api|bot|liff)\b|\bliff\b/i, have: /^line /i },

@@ -106,7 +106,8 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     }
     const obj = gltf.scene.clone(true);
     obj.scale.setScalar(scale);
-    const mask = glow > 0 ? await glowMask(file.split('/')[0]) : null;
+    // A texture the browser won't let us read (opened as a file, blocked CDN…) just means no window glow.
+    const mask = glow > 0 ? await glowMask(file.split('/')[0]).catch(() => null) : null;
     obj.traverse((o) => {
       if (!o.isMesh) return;
       o.castShadow = true;
@@ -349,7 +350,8 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     await Promise.all(site.map((s) => placeAt(s, entry.group, 0.025)));
   }
 
-  for (const p of places) jobs.push(buildPlace(p));
+  // One broken building must not take the whole town down with it.
+  for (const p of places) jobs.push(buildPlace(p).catch((err) => console.warn(`Could not build ${p.id}`, err)));
 
   // ---------- walkers: you, a dog that follows you, and a cat ----------
   async function makeActor(file, height) {
@@ -461,7 +463,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     })(),
   );
 
-  await Promise.all(jobs);
+  await Promise.all(jobs.map((j) => j.catch((err) => console.warn('Scenery item failed', err))));
   if (walker && dog) dog.root.position.copy(walker.root.position).add(new THREE.Vector3(-0.3, 0, 0));
 
   const turn = (cur, want, dt, speed = 8) => {

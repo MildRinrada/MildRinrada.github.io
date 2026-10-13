@@ -102,33 +102,39 @@ export const places = [
     media: gallery('fictionthai', 3),
   },
   {
-    // TODO: the source repo is named "Bookdose Customer Service". Confirm you may publish it before going live.
+    // Written from C:\Customer Service Github (README, docs/architecture.md, docs/features, docs/security).
     id: 'customer-service',
     kind: 'project',
     icon: '💬',
-    title: 'Omnichannel Customer Service',
+    title: 'Bookdose Customer Service',
     short: 'Customer Service', // the pin label in town
-    tagline: 'One inbox for every channel, for many organisations',
+    tagline: 'Customer service platform for many organisations',
     category: 'Full-stack project',
     status: null,
     at: { pos: [-1.8, -1.3] },
     model: { file: 'commercial/building-f.glb', scale: 1 },
     summary:
-      'A Thai web-based customer service system that serves many organisations from one install. Each organisation receives web chat, LINE, email, Facebook and Instagram messages in a single inbox, opens cases, tracks SLA response times, and works with a knowledge base, automations, reports and an AI assistant.',
+      'A Thai customer service platform where many organisations share one system, each with its own database. Teams answer web chat, LINE, email, Facebook and Instagram from one inbox, work tickets against SLAs, and lean on a knowledge base, automations, reports and AI. Customers get a support page, guest chat, a chat button for their own website, and one account that works with every organisation.',
     highlights: [
-      'A single inbox for web chat, LINE, email, Facebook and Instagram.',
-      'Cases with SLA timers, a knowledge base, automations and reports.',
-      'Multi-organisation by design: a separate SQLite database per organisation plus one central database.',
-      'Live updates over WebSocket; the Next.js frontend forwards every /api request to the FastAPI backend.',
-      'Documented roles and permissions, data isolation, secret storage and request protection.',
+      'About 400 API routes across 31 backend modules, covered by 585 automated tests.',
+      'Inbox and tickets: every channel in one place, internal notes and @mentions, six ticket states, SLAs with business hours and holidays, auto-assignment, escalation, macros, CSAT surveys and auto-close.',
+      'AI that each organisation connects with its own key: reply drafts that cite knowledge-base articles, rewriting, tag and priority suggestions, a chatbot on web, LINE and email, an assistant that can act on tickets, summaries, sentiment and translation.',
+      'Reports that forecast ticket volume and the staff needed each day, plus team-spirit touches: an inbox weather forecast, a kudos wall, monthly recaps and achievements.',
+      'Security in depth: a separate SQLite database per organisation, encrypted secrets, passkeys and two-step sign-in, CSRF protection, a fresh CSP nonce on every page, rate limits, Turnstile, honeypots and honeytokens.',
+      'Next.js forwards every /api call and WebSocket to FastAPI, where one catch-all route feeds a custom dispatcher: access-level middleware, then controller, service and repository.',
     ],
     layers: [
-      { kind: 'frontend', items: ['Next.js 16', 'React 19', 'TypeScript'] },
-      { kind: 'backend', items: ['Python', 'FastAPI', 'WebSocket'] },
-      { kind: 'data', items: ['SQLite per organisation'] },
+      { kind: 'frontend', items: ['Next.js 16', 'React 19', 'TypeScript', 'TanStack Query'] },
+      { kind: 'backend', items: ['Python', 'FastAPI', 'uvicorn', 'WebSocket'] },
+      { kind: 'infra', items: ['LINE Messaging API', 'Facebook & Instagram', 'IMAP / SMTP'] },
+      { kind: 'data', items: ['SQLite, one per organisation'] },
     ],
     links: { live: '', repo: '' },
-    media: gallery('customer-service', 3),
+    // The demo video plays first. Overwrite demo.mp4 with your own video and keep the name.
+    // Pictures stay as they are: 01.png is still the cover in the list view and the CV.
+    media: {
+      images: [{ src: 'assets/projects/customer-service/demo.mp4', type: 'video' }, ...gallery('customer-service', 4).images],
+    },
   },
   {
     id: 'bookdose',
@@ -199,16 +205,28 @@ export const places = [
     icon: '💻',
     title: 'Laptop Recommendation',
     short: 'Laptop Advisor',
-    tagline: 'Web app with a rule-based expert system',
+    // Written from C:\Portfolio Project\Web-Application-For-Laptops-Recommendation (README, docs/UI.md, app/).
+    tagline: 'Laptop advice from a rule-based expert system',
     category: 'Special problem project · KMITL',
     status: null,
     at: { pos: [5.4, -1.3] },
     model: { file: 'commercial/building-c.glb', scale: 1.1 },
     summary:
-      'A web application that suggests efficient, suitable laptops. Users give some basic information, and a rule-based expert system analyses the specifications of each laptop to recommend the best matches.',
-    highlights: ['Data processing over laptop specifications.', 'A rule-based expert system that matches what users need to the right specs.'],
-    layers: [], // TODO: add the stack you used
-    links: { live: '', repo: '' },
+      'A web application that helps people choose a laptop. It asks one question at a time (budget, how the laptop will be used, operating system, touchscreen), runs the answers through a rule-based expert system, and lists the models that fit. Visitors can also browse a catalog by brand, filter it, open full specs and compare two models side by side.',
+    highlights: [
+      'Rule-based expert system: a step-by-step question flow that ends in one of 18 rules, each matched to the laptops tagged with it in the database.',
+      'Catalog for 7 brands (Acer, Apple, Asus, Dell, HP, Lenovo, MSI) with model search, instant price sorting, and filters for brand, price, RAM and storage that work without reloading and apply to whatever is on screen, recommendation results included.',
+      'Detail pages with CPU, GPU, RAM, storage, display, ports, pros and cons and where to buy, plus a side-by-side comparison of two models.',
+      'Flask with an application factory and blueprints, split into routes, a repository layer that keeps every query in shared functions using parameterised SQL, and Jinja2 template inheritance.',
+      'MySQL schema of 8 tables. The real questionnaire responses stay private; the repository ships only code, schema and made-up seed data.',
+    ],
+    layers: [
+      { kind: 'frontend', items: ['Jinja2', 'HTML', 'CSS', 'jQuery'] },
+      { kind: 'backend', items: ['Python', 'Flask', 'SQLAlchemy'] },
+      { kind: 'infra', items: ['EmailJS'] },
+      { kind: 'data', items: ['MySQL / MariaDB'] },
+    ],
+    links: { live: '', repo: 'https://github.com/MildRinrada/Web-Application-For-Laptops-Recommendation' },
     media: gallery('laptop-recommendation', 3),
   },
 
@@ -374,6 +392,6 @@ export const places = [
       { kind: 'backend', items: ['Python', 'Flask', 'Naive Bayes', 'attacut'] },
     ],
     links: { live: '', repo: '' },
-    media: gallery('thai-emotion-detection', 4),
+    media: gallery('thai-emotion-detection', 3),
   },
 ];
