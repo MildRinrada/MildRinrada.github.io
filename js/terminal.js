@@ -62,7 +62,7 @@ export function createTerminal({ places, site, company, actions }) {
         ['fireworks', ''],
         ['contact', 'how to reach me'],
         ['cv', 'print a one-page CV'],
-        ['sudo hire mild', '🙂'],
+        ['sudo hire mild', ':)'],
         ['clear | exit', ''],
       ].forEach(([c, d]) => line(`  ${c.padEnd(40)}${d}`));
       line('Tab completes names. ↑ ↓ walk through history.', 'ln-dim');
@@ -78,8 +78,8 @@ export function createTerminal({ places, site, company, actions }) {
       }
       if (arg.startsWith('buildings')) {
         for (const p of places) {
-          if (p.kind === 'lot') line(`  ${p.icon}  ${'next-lot'.padEnd(26)}${company ? `reserved for ${company}` : 'vacant'}`, 'ln-dim');
-          else line(`  ${p.icon}  ${p.id.padEnd(26)}${p.title}${p.status === 'live' ? '  ● live' : p.status === 'building' ? '  🚧' : ''}`);
+          if (p.kind === 'lot') line(`  ${'next-lot'.padEnd(26)}${company ? `reserved for ${company}` : 'vacant'}`, 'ln-dim');
+          else line(`  ${p.id.padEnd(26)}${p.title}${p.status === 'live' ? '  ● live' : p.status === 'building' ? '  [under construction]' : ''}`);
         }
         return;
       }
@@ -96,7 +96,7 @@ export function createTerminal({ places, site, company, actions }) {
       }
       const p = byId.get(arg.replace(/\/$/, ''));
       if (!p || p.kind === 'lot') return line(`cat: ${arg}: No such file or directory`, 'ln-err');
-      line(`${p.icon} ${p.title}`, 'ln-head');
+      line(p.title, 'ln-head');
       line(p.tagline, 'ln-dim');
       line(p.summary);
       for (const l of p.layers ?? []) line(`  ${l.kind.padEnd(9)} ${l.items.join(', ')}`, 'ln-ok');
@@ -117,7 +117,7 @@ export function createTerminal({ places, site, company, actions }) {
       return arg && arg !== '~' ? commands.open(arg) : line('');
     },
     whoami() {
-      line(company ? `${user}  (welcome, ${company} 👋)` : `${user}  (but you could be my next teammate)`);
+      line(company ? `${user}  (welcome, ${company})` : `${user}  (but you could be my next teammate)`);
       line(`and I'm ${site.name}, a ${site.role.toLowerCase()}. → cat about.txt`, 'ln-dim');
     },
     about() {
@@ -140,15 +140,15 @@ export function createTerminal({ places, site, company, actions }) {
     },
     night() {
       actions.night(true);
-      line('🌙 Lights on.', 'ln-ok');
+      line('Lights on.', 'ln-ok');
     },
     day() {
       actions.night(false);
-      line('☀️ Good morning.', 'ln-ok');
+      line('Good morning.', 'ln-ok');
     },
     blueprint() {
       actions.blueprint(true);
-      line('📐 Blueprint on. Hover a building to read its floors.', 'ln-ok');
+      line('Blueprint on. Hover a building to read its floors.', 'ln-ok');
     },
     async avatar(arg) {
       if (!arg || arg === 'list') {
@@ -161,7 +161,7 @@ export function createTerminal({ places, site, company, actions }) {
       if (!actions.hasWorld()) return line('avatar: the 3D town is not running here.', 'ln-err');
       line('Changing clothes…', 'ln-dim');
       await actions.avatar(`characters/character-${arg}.glb`);
-      line(`✔ Now walking around as ${arg}.`, 'ln-ok');
+      line(`✓ Now walking around as ${arg}.`, 'ln-ok');
       line(`To keep it, set avatar: 'characters/character-${arg}.glb' in data/town.js`, 'ln-dim');
     },
     cv() {
@@ -170,7 +170,7 @@ export function createTerminal({ places, site, company, actions }) {
     },
     fireworks() {
       actions.fireworks();
-      line('🎆', 'ln-ok');
+      line('*  .  *  boom  *  .  *', 'ln-ok');
     },
     contact() {
       line('Reach me', 'ln-head');
@@ -181,7 +181,7 @@ export function createTerminal({ places, site, company, actions }) {
     async sudo(...args) {
       if (args.join(' ') !== 'hire mild') return line('usage: sudo hire mild', 'ln-err');
       line(`[sudo] password for ${user}: ••••••••`, 'ln-dim');
-      await later(650, () => line(company ? `✔ Access granted for ${company}.` : '✔ Access granted.', 'ln-ok'));
+      await later(650, () => line(company ? `✓ Access granted for ${company}.` : '✓ Access granted.', 'ln-ok'));
       await later(350, () => line('  → launching fireworks…', 'ln-dim'));
       actions.fireworks();
       await later(900, () => line(`Thank you! ${site.nickname} would love to hear from you:`, 'ln-head'));
@@ -191,7 +191,7 @@ export function createTerminal({ places, site, company, actions }) {
       line(arg === 'mild' ? 'hire: permission denied (hint: try sudo)' : 'usage: hire mild', 'ln-err');
     },
     rm(...args) {
-      line(args.join(' ').includes('-rf') ? "rm: this town has backups. Nice try 🙂" : 'rm: operation not permitted', 'ln-err');
+      line(args.join(' ').includes('-rf') ? 'rm: this town has backups. Nice try :)' : 'rm: operation not permitted', 'ln-err');
     },
     date() {
       line(new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', dateStyle: 'full', timeStyle: 'short' }).format(new Date()) + ' (Bangkok)');
@@ -203,7 +203,7 @@ export function createTerminal({ places, site, company, actions }) {
       line(args.join(' '));
     },
     coffee() {
-      line('☕ Brewing… done. Back to shipping.', 'ln-ok');
+      line('Brewing... done. Back to shipping.', 'ln-ok');
     },
     clear() {
       out.replaceChildren();
@@ -212,7 +212,7 @@ export function createTerminal({ places, site, company, actions }) {
       close();
     },
   };
-  commands.hello = commands.hi = () => line(`Hi! 👋 Type 'help' to look around.`);
+  commands.hello = commands.hi = () => line(`Hi! Type 'help' to look around.`);
 
   async function run(raw) {
     const text = raw.trim();

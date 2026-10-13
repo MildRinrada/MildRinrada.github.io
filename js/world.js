@@ -21,11 +21,11 @@ export const LAYER_COLORS = { frontend: '#33d6ff', backend: '#ffc94d', infra: '#
 const ABOVE_GROUND = ['frontend', 'backend', 'infra'];
 const BASEMENT_Y = -0.24;
 
-const DAY = { sky: new THREE.Color('#eef6ff'), ground: new THREE.Color('#a6c79c'), hemi: 1.9, sun: new THREE.Color('#fff0d6'), sunI: 2.7 };
-const NIGHT = { sky: new THREE.Color('#4a5aa0'), ground: new THREE.Color('#161b33'), hemi: 0.65, sun: new THREE.Color('#9fb6ff'), sunI: 0.55 };
+const DAY = { sky: new THREE.Color('#f1f4fb'), ground: new THREE.Color('#e9d9c9'), hemi: 1.95, sun: new THREE.Color('#fff1df'), sunI: 2.6 };
+const NIGHT = { sky: new THREE.Color('#5a5590'), ground: new THREE.Color('#2a2238'), hemi: 0.7, sun: new THREE.Color('#b4b0ff'), sunI: 0.55 };
 const GHOST = { day: new THREE.Color('#2f6fe8'), night: new THREE.Color('#8cc2ff'), blueprint: new THREE.Color('#ffffff') };
 const WEATHER_DIM = { clear: 1, cloudy: 0.8, rain: 0.62, storm: 0.5 };
-const FIREWORK_COLORS = ['#ff6b4a', '#ffd166', '#33d6ff', '#9ee86f', '#ff8fb1', '#c49bff', '#ffffff'];
+const FIREWORK_COLORS = ['#f6a19b', '#ffe681', '#9ccbec', '#a9d79a', '#f7b6c2', '#c9b6e6', '#ffffff'];
 
 const VIEW_DIR = new THREE.Vector3(1, 0.92, 1.08).normalize();
 const CHARACTER_HEIGHT = 0.3;
@@ -143,9 +143,9 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     scene.add(m);
     return m;
   };
-  slab(W, 0.12, D, -0.06, '#7cc97e');
-  slab(W - 0.04, 0.4, D - 0.04, -0.32, '#8b6a50');
-  slab(W - 0.3, 0.26, D - 0.3, -0.65, '#5b6278');
+  slab(W, 0.12, D, -0.06, '#a9d79a');
+  slab(W - 0.04, 0.4, D - 0.04, -0.32, '#e3c4a8');
+  slab(W - 0.3, 0.26, D - 0.3, -0.65, '#cdbfd8');
 
   // ---------- scenery ----------
   const jobs = [];
@@ -181,7 +181,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
   const entries = new Map();
   const pickables = [];
   const ghostMat = new LineMaterial({ color: GHOST.day, linewidth: 1.6, dashed: true, dashSize: 0.09, gapSize: 0.06, transparent: true, opacity: 0.95 });
-  const scaffoldMat = new LineMaterial({ color: '#f0a43a', linewidth: 2.2 });
+  const scaffoldMat = new LineMaterial({ color: '#e8a37a', linewidth: 2.2 });
   const packetGeo = new THREE.SphereGeometry(0.045, 12, 8);
   const packetMat = new THREE.MeshBasicMaterial({ color: '#ffffff' });
 
@@ -304,7 +304,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
   async function buildLot(entry, lot) {
     const [w, d] = lot.size;
     const [gw, gh, gd] = lot.ghost;
-    const dirt = new THREE.Mesh(new THREE.BoxGeometry(w, 0.025, d), new THREE.MeshStandardMaterial({ color: '#d9b68c', roughness: 1 }));
+    const dirt = new THREE.Mesh(new THREE.BoxGeometry(w, 0.025, d), new THREE.MeshStandardMaterial({ color: '#efd8bd', roughness: 1 }));
     dirt.position.y = 0.0125;
     dirt.receiveShadow = true;
     entry.group.add(dirt);
@@ -564,7 +564,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       cat.react = 2.8;
       cat.target = null;
       play(cat.actor, 'dance');
-      bubble(cat.root, 'Meow ♪');
+      bubble(cat.root, 'Meow~');
     }
     if (id === 'pet:dog' && dog) {
       dog.react = 2.4;
@@ -593,7 +593,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
         const box = new THREE.Box3().setFromObject(e.group);
         const size = box.getSize(new THREE.Vector3());
         const centre = e.group.worldToLocal(box.getCenter(new THREE.Vector3()));
-        const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: '#ffb547', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
+        const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: '#d98f98', transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
         ring.rotation.x = -Math.PI / 2;
         ring.position.set(centre.x, 0.04, centre.z);
         ring.userData.radius = Math.max(size.x, size.z) * 0.6 + 0.14;

@@ -17,7 +17,7 @@ const loader = $('#loader');
 const lightbox = $('#lightbox');
 const matcher = $('#matcher');
 
-const ABOUT = { id: 'about', kind: 'about', icon: '👋', title: `${site.name} (${site.nickname})` };
+const ABOUT = { id: 'about', kind: 'about', icon: 'person', title: `${site.name} (${site.nickname})` };
 const byId = new Map([...places.map((p) => [p.id, p]), [ABOUT.id, ABOUT]]);
 const pins = new Map(); // id → button
 const layerTags = []; // { el, kind }
@@ -78,6 +78,14 @@ const storage = {
 const pct = (p) => (p.progress ? Math.round((p.progress.value / p.progress.total) * 100) : null);
 const title = (p) => tp(p, 'title');
 
+// Every building gets its own pastel, shared by its pin, its panel and its card.
+const PASTELS = ['#ffe681', '#f8d5da', '#cfe1ef', '#dcd0ea', '#cfe5c4', '#f9dcc6', '#f6c4bd', '#e5ddd3'];
+// Colour icons live in assets/icons/ (Fluent UI System Icons, colour set, MIT licence).
+const iconImg = (name, className = 'ic') => el('img', { class: className, src: `assets/icons/${name}.svg`, alt: '', decoding: 'async', draggable: 'false' });
+const starIcon = () => iconImg('star', 'ic ic-star');
+
+const tint = (p) => (p.kind === 'about' ? '#f9dcc6' : PASTELS[Math.max(0, places.indexOf(p)) % PASTELS.length]);
+
 function statusLabel(p) {
   if (p.status === 'live') return t('status.live');
   if (p.status === 'building') return pct(p) != null ? `${t('status.building')} · ${pct(p)}%` : t('status.building');
@@ -101,15 +109,15 @@ function fillPin(btn, p) {
     el(
       'span',
       { class: 'pin-inner' },
-      el('span', { class: 'pin-icon', 'aria-hidden': 'true', text: p.icon }),
+      el('span', { class: 'pin-icon', 'aria-hidden': 'true' }, iconImg(p.icon)),
       el('span', { class: 'pin-text' }, el('b', { text: tx.title }), el('small', { text: tx.sub })),
-      count ? el('span', { class: 'pin-badge', 'aria-hidden': 'true', text: `★ ${count}` }) : null,
+      count ? el('span', { class: 'pin-badge', 'aria-hidden': 'true' }, starIcon(), String(count)) : null,
     ),
   );
 }
 
 function makePin(p) {
-  const btn = el('button', { class: `pin pin-${p.kind}${p.status ? ` pin-${p.status}` : ''}`, type: 'button' });
+  const btn = el('button', { class: `pin pin-${p.kind}${p.status ? ` pin-${p.status}` : ''}`, type: 'button', style: `--tint: ${tint(p)}` });
   fillPin(btn, p);
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -206,7 +214,7 @@ function gallery(p) {
       el(
         'button',
         { class: `g-thumb${isVideo(item) ? ' g-thumb-video' : ''}`, type: 'button', 'aria-label': isVideo(item) ? t('img.playVideo') : t('img.show', { n: i + 1 }), onclick: () => show(i) },
-        isVideo(item) ? [videoEl(item, p, { thumb: true }), el('span', { class: 'g-play', 'aria-hidden': 'true', text: '▶' })] : shotImg(item, p, i),
+        isVideo(item) ? [videoEl(item, p, { thumb: true }), el('span', { class: 'g-play', 'aria-hidden': 'true' })] : shotImg(item, p, i),
       ),
     ),
   );
@@ -295,7 +303,7 @@ function head(icon, eyebrow, heading, tagline) {
   return el(
     'header',
     { class: 'p-head' },
-    typeof icon === 'string' ? el('span', { class: 'p-icon', 'aria-hidden': 'true', text: icon }) : icon,
+    typeof icon === 'string' ? el('span', { class: 'p-icon', 'aria-hidden': 'true' }, iconImg(icon)) : icon,
     el('div', {}, el('p', { class: 'eyebrow', text: eyebrow }), el('h2', { id: 'panel-title', tabindex: '-1', text: heading }), tagline && el('p', { class: 'p-tagline', text: tagline })),
   );
 }
@@ -335,7 +343,7 @@ function placeParts(p) {
   return [
     head(p.icon, eyebrow, title(p), tp(p, 'tagline')),
     chips.some(Boolean) ? el('div', { class: 'p-chips' }, chips.filter(Boolean).map((c) => el('span', { class: c === t('status.live') ? 'chip chip-live' : 'chip', text: c }))) : null,
-    matched.length ? el('p', { class: 'p-match' }, `★ ${t('match.have')}: `, matched.map((r) => r.skill.name).join(', ')) : null,
+    matched.length ? el('p', { class: 'p-match' }, starIcon(), ` ${t('match.have')}: `, matched.map((r) => r.skill.name).join(', ')) : null,
     progress(p),
     p.media?.images?.length ? gallery(p) : null,
     el('p', { class: 'p-summary', text: tp(p, 'summary') }),
@@ -347,6 +355,7 @@ function placeParts(p) {
 
 function renderPanel(p) {
   const parts = p.kind === 'about' ? aboutParts() : p.kind === 'lot' ? lotParts(p) : placeParts(p);
+  panel.style.setProperty('--tint', tint(p));
   $('.panel-body', panel).replaceChildren(...parts.filter(Boolean)); // replaceChildren would print null as text
 }
 
@@ -389,12 +398,12 @@ function card(p) {
   const count = match?.result.perPlace.get(p.id);
   return el(
     'article',
-    { class: `card${count ? ' card-match' : ''}` },
+    { class: `card${count ? ' card-match' : ''}`, style: `--tint: ${tint(p)}` },
     cover && el('div', { class: 'card-cover' }, shotImg(cover, p, p.media.images.indexOf(cover))),
-    el('div', { class: 'card-top' }, el('span', { class: 'card-icon', 'aria-hidden': 'true', text: p.icon }), el('p', { class: 'eyebrow', text: eyebrow })),
+    el('div', { class: 'card-top' }, el('span', { class: 'card-icon', 'aria-hidden': 'true' }, iconImg(p.icon)), el('p', { class: 'eyebrow', text: eyebrow })),
     el('h3', { text: title(p) }),
     el('p', { class: 'card-tagline', text: tp(p, 'tagline') }),
-    count ? el('p', { class: 'card-status card-status-match', text: `★ ${t('match.skills', { n: count })}` }) : null,
+    count ? el('p', { class: 'card-status card-status-match' }, starIcon(), ` ${t('match.skills', { n: count })}`) : null,
     p.kind === 'project' && statusLabel(p) && el('p', { class: `card-status card-status-${p.status}`, text: statusLabel(p) }),
     el('p', { class: 'card-summary', text: tp(p, 'summary') }),
     el('div', { class: 'card-chips' }, (p.layers ?? []).flatMap((l) => l.items).slice(0, 8).map((i) => el('span', { class: 'chip', text: i }))),
@@ -413,7 +422,7 @@ function card(p) {
 function aboutCard() {
   return el(
     'article',
-    { class: 'card card-about' },
+    { class: 'card card-about', style: `--tint: ${tint(ABOUT)}` },
     photo('card-photo'),
     el(
       'div',
@@ -468,12 +477,14 @@ function closeList() {
 // ---------- intro ----------
 function renderIntro() {
   $('#intro-title').textContent = company ? t('intro.titleCompany', { company }) : t('intro.title');
-  $('.intro-body').replaceChildren(
+  $('.intro-sub').textContent = t('intro.sub');
+  const parts = [
     company ? t('intro.bodyCompany1') : t('intro.body1'),
     el('b', { text: t('nav.blueprint') }),
     company ? t('intro.bodyCompany2') : t('intro.body2'),
     role ? el('span', { class: 'intro-role', text: ` ${t('intro.bodyRole', { role: t(`role.${role}`) })}` }) : null,
-  );
+  ];
+  $('.intro-body').replaceChildren(...parts.filter(Boolean)); // replaceChildren would print null as text
 }
 
 function showIntro() {
@@ -524,7 +535,7 @@ function renderMatcher(noneFound = false) {
   const r = match.result;
   const placeChip = (id) => {
     const p = byId.get(id);
-    return el('span', { class: 'm-place', title: title(p), text: p.icon });
+    return el('span', { class: 'm-place', title: title(p) }, iconImg(p.icon));
   };
   const best = [...r.perPlace].sort((a, b) => b[1] - a[1]).slice(0, 5);
   out.replaceChildren(
@@ -555,7 +566,7 @@ function renderMatcher(noneFound = false) {
             { class: 'm-best' },
             best.map(([id, n]) => {
               const p = byId.get(id);
-              return el('button', { class: 'm-best-row', type: 'button', onclick: () => select(id) }, el('span', { class: 'm-best-icon', 'aria-hidden': 'true', text: p.icon }), el('span', { class: 'm-best-name', text: title(p) }), el('span', { class: 'm-best-n', text: t('match.skills', { n }) }));
+              return el('button', { class: 'm-best-row', type: 'button', onclick: () => select(id) }, el('span', { class: 'm-best-icon', 'aria-hidden': 'true', style: `--tint: ${tint(p)}` }, iconImg(p.icon)), el('span', { class: 'm-best-name', text: title(p) }), el('span', { class: 'm-best-n', text: t('match.skills', { n }) }));
             }),
           ),
         )
@@ -714,7 +725,7 @@ function setLang(next, { remember = true } = {}) {
 }
 
 // ---------- live Bangkok weather and time (Open-Meteo, no key needed) ----------
-const WX_ICON = { clear: '☀️', cloudy: '⛅', rain: '🌧️', storm: '⛈️' };
+const WX_ICON = { clear: 'weather-clear', cloudy: 'weather-cloudy', rain: 'weather-rain', storm: 'weather-storm' };
 let live = true;
 let wx = null;
 let weatherNow = 'clear';
@@ -759,9 +770,9 @@ async function syncWeather() {
 function renderWeatherChip() {
   const chip = $('#weather');
   if (!chip) return;
-  const icon = weatherNow === 'clear' && isNight ? '🌙' : WX_ICON[weatherNow];
+  const icon = weatherNow === 'clear' && isNight ? 'weather-night' : WX_ICON[weatherNow];
   const temp = wx?.temp != null && live ? ` ${wx.temp}°C` : '';
-  $('.wx-icon', chip).textContent = icon;
+  $('.wx-icon', chip).replaceChildren(iconImg(icon));
   $('.wx-text', chip).textContent = `${t('wx.city')}${temp} · ${bangkokTime()}`;
   $('.wx-live', chip).textContent = live ? t('wx.live') : t('wx.paused');
   chip.classList.toggle('is-paused', !live);
@@ -944,7 +955,7 @@ async function boot() {
   if (byId.has(fromHash)) select(fromHash);
   else if (world) showIntro();
 
-  console.log('%cHi, fellow developer 👋', 'font: 600 14px system-ui; color: #ff6b4a', '\nThis town has a terminal. Press ` (backtick) to open it, or use the >_ button in the corner.');
+  console.log('%cHi, fellow developer', 'font: 600 14px system-ui; color: #ff6b4a', '\nThis town has a terminal. Press ` (backtick) to open it, or use the >_ button in the corner.');
 }
 
 boot();

@@ -9,6 +9,7 @@
 // and add a line to that place's media.images below. See assets/projects/README.md.
 //
 // status: 'live' (lights on at night) · 'building' (scaffolding, optional progress) · null (no badge)
+// icon: a file name in assets/icons/ (Fluent UI System Icons, colour set, MIT licence)
 
 export const site = {
   name: 'Rinrada',
@@ -63,7 +64,7 @@ export const places = [
   {
     id: 'kmitl',
     kind: 'education',
-    icon: '🎓',
+    icon: 'certificate',
     title: 'KMITL',
     tagline: 'B.Sc. Computer Science',
     status: null,
@@ -76,7 +77,7 @@ export const places = [
   {
     id: 'fictionthai',
     kind: 'project',
-    icon: '📚',
+    icon: 'book_open',
     title: 'FictionThai',
     tagline: 'Full-stack novel & writing platform',
     category: 'Solo full-stack project',
@@ -105,7 +106,7 @@ export const places = [
     // Written from C:\Customer Service Github (README, docs/architecture.md, docs/features, docs/security).
     id: 'customer-service',
     kind: 'project',
-    icon: '💬',
+    icon: 'chat_multiple',
     title: 'Bookdose Customer Service',
     short: 'Customer Service', // the pin label in town
     tagline: 'Customer service platform for many organisations',
@@ -139,7 +140,7 @@ export const places = [
   {
     id: 'bookdose',
     kind: 'work',
-    icon: '🏢',
+    icon: 'building',
     title: 'Bookdose Co., Ltd.',
     short: 'Bookdose',
     tagline: 'Full-Stack Developer',
@@ -167,7 +168,7 @@ export const places = [
   {
     id: 'securesight',
     kind: 'project',
-    icon: '🛡️',
+    icon: 'shield_checkmark',
     title: 'SecureSight',
     tagline: 'Web security scanning & risk management',
     category: 'Full-stack project',
@@ -195,14 +196,14 @@ export const places = [
   {
     id: 'next-lot',
     kind: 'lot',
-    icon: '📐',
+    icon: 'lightbulb_filament',
     at: { pos: [3.6, -1.3] },
     lot: { size: [1.7, 1.35], ghost: [1.1, 2.3, 0.9] },
   },
   {
     id: 'laptop-recommendation',
     kind: 'project',
-    icon: '💻',
+    icon: 'laptop',
     title: 'Laptop Recommendation',
     short: 'Laptop Advisor',
     // Written from C:\Portfolio Project\Web-Application-For-Laptops-Recommendation (README, docs/UI.md, app/).
@@ -234,7 +235,7 @@ export const places = [
   {
     id: 'nk-digital-library',
     kind: 'project',
-    icon: '🏫',
+    icon: 'library',
     title: 'NK Digital Library',
     short: 'NK Library',
     tagline: 'Official website of Matthayom Wat Nongkhaem School',
@@ -257,7 +258,7 @@ export const places = [
   {
     id: 'thai-breastfeeding-center',
     kind: 'project',
-    icon: '🍼',
+    icon: 'person_heart',
     title: 'Thai Breastfeeding Center Foundation',
     short: 'Breastfeeding Center',
     tagline: 'Official foundation website',
@@ -280,7 +281,7 @@ export const places = [
   {
     id: 'kawaiibake',
     kind: 'project',
-    icon: '🧁',
+    icon: 'building_store',
     title: 'KawaiiBake',
     tagline: 'Full-stack bakery tutorial platform',
     category: 'Full-stack project',
@@ -313,7 +314,7 @@ export const places = [
   {
     id: 'happy-paws-clinic',
     kind: 'project',
-    icon: '🐾',
+    icon: 'animal_paw_print',
     title: 'Happy Paws Clinic',
     short: 'Happy Paws',
     tagline: 'Veterinary clinic management system',
@@ -344,7 +345,7 @@ export const places = [
     // The project README spells it "MeowBark AI". Pick one spelling and use it everywhere.
     id: 'mewbark-ai',
     kind: 'project',
-    icon: '🐱',
+    icon: 'bot_sparkle',
     title: 'MewBark AI',
     tagline: 'AI pet companion on LINE',
     category: 'Full-stack project',
@@ -373,7 +374,7 @@ export const places = [
   {
     id: 'thai-emotion-detection',
     kind: 'project',
-    icon: '🔮',
+    icon: 'person_feedback',
     title: 'Thai Emotion Detection',
     short: 'Emotion AI',
     tagline: 'Reads a Thai sentence and names the feeling',
