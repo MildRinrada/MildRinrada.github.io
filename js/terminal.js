@@ -3,6 +3,7 @@
 import { bugSpots } from './scenery.js';
 import { FLAGS } from './ctf.js';
 
+const SCAN_LABEL = { high: 'HIGH    ', medium: 'MEDIUM  ', low: 'LOW     ', info: 'INFO    ', ok: 'OK      ' };
 const AVATARS = ['female-a', 'female-b', 'female-c', 'female-d', 'female-e', 'female-f', 'male-a', 'male-b', 'male-c', 'male-d', 'male-e', 'male-f'];
 export const SKYLINE = String.raw`
         _                 ___
@@ -69,8 +70,9 @@ export function createTerminal({ places, site, company, actions }) {
         ['tour', 'a one-minute guided tour'],
         ['achievements [reset]', 'what you have found so far'],
         ['bugs', 'a hint for the bug hunt'],
-        ['ctf', 'capture the flag: 4 flags hidden in the site'],
+        ['ctf (or flags)', 'capture the flag: which of the 4 flags you have'],
         ['submit <flag>', 'hand in a flag you found'],
+        ['scan', 'a passive security check of this site, ranked by risk'],
         ['sudo hire mild', ':)'],
         ['clear | exit', ''],
       ].forEach(([c, d]) => line(`  ${c.padEnd(40)}${d}`));
@@ -223,6 +225,25 @@ export function createTerminal({ places, site, company, actions }) {
       line(say(`ctf.${id}.lesson`), 'ln-dim');
       if (n === actions.ctf.total) line(say('ctf.allDone'), 'ln-head');
     },
+    async scan() {
+      line(`Passive scan of ${location.origin}${location.pathname}`, 'ln-head');
+      line('Read-only, the SecureSight way: one request for this page’s own headers, plus what the browser already holds. Nothing is attacked or changed.', 'ln-dim');
+      const r = await actions.scan();
+      line(r.status ? `${r.method} ${r.status}: ${r.headerCount} headers, ${r.resourceCount} files loaded` : 'Could not read the headers, so only what the browser knows is ranked.', r.status ? 'ln-dim' : 'ln-err');
+      const c = r.counts;
+      line(`${c.high} high   ${c.medium} medium   ${c.low} low   ${c.info} info   ${c.ok} passed`, 'ln-head');
+      const pace = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 70;
+      for (const x of r.findings) {
+        await later(pace, () => line(`  ${SCAN_LABEL[x.level]}${x.title}`, x.level === 'ok' ? 'ln-ok' : `ln-${x.level}`));
+        if (x.level === 'ok') continue;
+        line(`          ${x.detail}`, 'ln-dim');
+        if (x.fix) line(`          Fix: ${x.fix}`, 'ln-dim');
+      }
+      const first = r.findings.find((x) => x.level === 'high' || x.level === 'medium');
+      line('');
+      line('Posture: a static site with no login, no cookies and nothing stored about visitors, so the realistic threat is a tampered third-party script rather than stolen data.', 'ln-head');
+      line(first ? `Fix first: ${first.title}.` : 'Nothing urgent. Keep the third-party scripts pinned.', 'ln-dim');
+    },
     cv() {
       line('Opening the print dialog…', 'ln-ok');
       setTimeout(() => actions.cv(), 300);
@@ -272,6 +293,7 @@ export function createTerminal({ places, site, company, actions }) {
     },
   };
   commands.hello = commands.hi = () => line(`Hi! Type 'help' to look around.`);
+  commands.flags = commands.checklist = commands.ctf; // what people type when they want the CTF list
 
   async function run(raw) {
     const text = raw.trim();

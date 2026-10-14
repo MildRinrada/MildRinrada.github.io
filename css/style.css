@@ -2536,6 +2536,7 @@ body.no-3d .hint {
 .ln {
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-wrap: anywhere; /* the suggested CSP is one long line */
 }
 
 .ln-cmd { color: #ffffff; }
@@ -2545,6 +2546,11 @@ body.no-3d .hint {
 .ln-head { color: #f6d38a; font-weight: 500; }
 .ln-art { color: #e6b5bb; line-height: 1.2; }
 .ln-link a { color: #b8d4f2; }
+/* scan findings, by risk */
+.ln-high { color: #ff9a9a; font-weight: 600; }
+.ln-medium { color: #f7b977; font-weight: 500; }
+.ln-low { color: #f0dc8c; }
+.ln-info { color: #b8d4f2; }
 
 .term-form {
   display: flex;

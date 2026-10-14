@@ -8,6 +8,7 @@
 //               <company>/console/<command>   someone typed hire() or town.<command>() in DevTools
 //               <company>/achievement/<id>    an achievement unlocked (achievement/all when every one is done)
 //               <company>/bug/<n>, pumpkin    a bug fixed in the bug hunt, a pumpkin tapped at Halloween
+//               <company>/flag/<id>, scan/run a CTF flag captured, the security scan run in the terminal
 //               <company>/link/<id>/<kind>   a click to a live site, repo, Figma file or map
 //   404 page    /404/<address>        a link that led nowhere
 //

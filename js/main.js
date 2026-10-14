@@ -11,6 +11,7 @@ import { createAchievements } from './achievements.js';
 import { festivalNow } from './festivals.js';
 import { progress as saved } from './progress.js';
 import { createCtf } from './ctf.js';
+import { scanSite } from './scan.js';
 import { qrSvg } from './qr.js';
 import { consoleEgg } from './console.js';
 import { t, tIn, tp, ts, skillLabel, getLang, setLangValue, SAMPLE_JD } from './i18n.js';
@@ -1135,6 +1136,10 @@ async function boot() {
     awards: () => awards.lines().map((a) => ({ ...a, name: t(`ach.${a.id}.name`) })),
     resetAwards: () => awards.reset(),
     bugsFixed: () => saved.bugs(),
+    scan: () => {
+      track('scan/run');
+      return scanSite();
+    },
     ctf: {
       submit: (text) => ctf.submit(text),
       inspect: (text) => ctf.inspect(text),

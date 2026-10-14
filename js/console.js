@@ -26,6 +26,7 @@ const MENU = [
   ['town.tour()', 'con.c.tour'],
   ['town.terminal()', 'con.c.terminal'],
   ['town.ctf()', 'con.c.ctf'],
+  ['town.scan()', 'con.c.scan'],
   ['town.source()', 'con.c.source'],
   ['help', 'con.c.help'],
 ];
@@ -91,13 +92,18 @@ export function consoleEgg({ site, places, company, actions, track }) {
       say([t(on ? 'con.blueprintOn' : 'con.blueprintOff'), S.ok]);
     },
     fireworks() {
-      if (needsWorld()) actions.fireworks();
+      if (!needsWorld()) return;
+      actions.fireworks();
+      say([t('con.fireworks'), S.ok]);
     },
     tour() {
-      if (needsWorld()) actions.tour();
+      if (!needsWorld()) return;
+      actions.tour();
+      say([t('con.tour'), S.ok]);
     },
     terminal() {
       actions.terminal();
+      say([t('con.terminal'), S.ok]);
     },
     ctf() {
       const got = actions.ctf.captured();
@@ -107,6 +113,14 @@ export function consoleEgg({ site, places, company, actions, track }) {
         say([`  [${done ? 'x' : ' '}] ${t(`ctf.${id}.name`).padEnd(18)}`, S.cmd], [t(done ? `ctf.${id}.lesson` : `ctf.${id}.hint`), S.dim]);
       }
       say(["  town.submit('FLAG{...}')", S.cmd], [`  ${t('con.ctfSubmit')}`, S.dim]);
+    },
+    scan() {
+      // not awaited, so the console prints the report instead of a pending Promise
+      actions.scan().then((r) => {
+        const c = r.counts;
+        say([t('con.scan', { high: c.high, medium: c.medium, low: c.low, info: c.info, ok: c.ok }), S.ok]);
+        console.table(r.findings.map((x) => ({ risk: x.level.toUpperCase(), finding: x.title, fix: x.fix ?? '' })));
+      });
     },
     submit(flag) {
       // not awaited, so the console prints the answer instead of a pending Promise
@@ -163,4 +177,5 @@ export function consoleEgg({ site, places, company, actions, track }) {
   say([t('con.plain'), S.text]);
   help();
   say([t('con.repo', { url: repo }), S.dim]);
+  say([t('con.undefined'), S.dim]);
 }
