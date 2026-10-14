@@ -2,7 +2,7 @@
 // printable CV, Thai/English, live Bangkok weather and the toggles. The 3D scene is loaded from world.js;
 // if WebGL or the CDN is unavailable, the list view takes over.
 
-import { site, places } from '../data/town.js';
+import { site, places as allPlaces } from '../data/town.js';
 import { createTerminal } from './terminal.js';
 import { t, tp, ts, skillLabel, getLang, setLangValue, SAMPLE_JD } from './i18n.js';
 import { detectSkills, matchSkills, roleSkills, ROLES } from './skills.js';
@@ -16,6 +16,9 @@ const intro = $('#intro');
 const loader = $('#loader');
 const lightbox = $('#lightbox');
 const matcher = $('#matcher');
+
+// `hidden: true` in data/town.js keeps a project out of the town, the list, the CV, the matcher and the terminal.
+const places = allPlaces.filter((p) => !p.hidden);
 
 const ABOUT = { id: 'about', kind: 'about', icon: 'person', title: `${site.name} (${site.nickname})` };
 const byId = new Map([...places.map((p) => [p.id, p]), [ABOUT.id, ABOUT]]);
@@ -158,17 +161,58 @@ function photo(className) {
 
 // A gallery item is a video when it says so or when the file is one (.mp4 / .webm / .mov).
 const isVideo = (item) => item.type === 'video' || /\.(mp4|webm|mov)$/i.test(item.src);
+// A PDF shows its first page as the picture, with buttons to open and download the file.
+const isPdf = (item) => item.type === 'pdf' || /\.pdf$/i.test(item.src);
 const firstImage = (p) => p.media?.images?.find((item) => !isVideo(item));
 
 // "Cover" is the first picture and screenshots count pictures only, so a video in front doesn't shift them.
 function caption(item, i, list) {
-  if (item.caption) return item.caption;
+  // a caption can be one string, or { en, th } to follow the language button
+  if (item.caption) return typeof item.caption === 'object' ? item.caption[getLang()] ?? item.caption.en : item.caption;
   if (isVideo(item)) return t('img.video');
-  const n = list.slice(0, i).filter((x) => !isVideo(x)).length;
+  if (isPdf(item)) return t('img.pdf');
+  const n = list.slice(0, i).filter((x) => !isVideo(x) && !isPdf(x)).length;
   return n === 0 ? t('img.cover') : t('img.shot', { n: n + 1 });
 }
 
-const missing = (item) => el('span', { class: 'g-missing', text: t(isVideo(item) ? 'img.videoMissing' : 'img.missing', { src: item.src }) });
+const missing = (item) => el('span', { class: 'g-missing', text: t(isVideo(item) ? 'img.videoMissing' : isPdf(item) ? 'img.pdfMissing' : 'img.missing', { src: item.src }) });
+
+// pdf.js draws the first page. It comes from the CDN only when a PDF is actually on screen.
+const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/';
+let pdfjs = null;
+const pdfCovers = new Map();
+function pdfCover(src) {
+  if (!pdfCovers.has(src)) {
+    pdfCovers.set(
+      src,
+      (async () => {
+        pdfjs ??= import(`${PDFJS}pdf.min.mjs`).then((lib) => {
+          lib.GlobalWorkerOptions.workerSrc = `${PDFJS}pdf.worker.min.mjs`;
+          return lib;
+        });
+        const doc = await (await pdfjs).getDocument(src).promise;
+        const page = await doc.getPage(1);
+        const viewport = page.getViewport({ scale: 960 / page.getViewport({ scale: 1 }).width });
+        const canvas = el('canvas', { width: String(Math.round(viewport.width)), height: String(Math.round(viewport.height)) });
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+        return { url: canvas.toDataURL('image/jpeg', 0.86), pages: doc.numPages, ratio: viewport.width / viewport.height };
+      })(),
+    );
+  }
+  return pdfCovers.get(src);
+}
+
+function pdfThumb(item, p, i, list = p.media?.images ?? [item]) {
+  const img = el('img', { alt: `${title(p)}: ${caption(item, i, list)}`, decoding: 'async' });
+  const box = el('span', { class: 'pdf-thumb' }, img, el('span', { class: 'pdf-badge', text: 'PDF' }));
+  pdfCover(item.src)
+    .then(({ url, ratio }) => {
+      img.src = url;
+      box.classList.toggle('pdf-portrait', ratio < 1);
+    })
+    .catch(() => box.replaceWith(missing(item)));
+  return box;
+}
 
 function shotImg(im, p, i, loading = 'lazy', list = p.media?.images ?? [im]) {
   const img = el('img', { src: im.src, alt: `${title(p)}: ${caption(im, i, list)}`, loading, decoding: 'async' });
@@ -196,17 +240,39 @@ function videoEl(item, p, { thumb = false, autoplay = false } = {}) {
 function gallery(p) {
   const items = p.media.images;
   const main = el('div', { class: 'g-main' });
+  const actions = el('div', { class: 'g-actions' });
   const cap = el('figcaption', { class: 'g-cap' });
   const thumbs = items.length > 1 ? el('div', { class: 'g-thumbs' }) : null;
+  let showing = -1;
   const show = (i) => {
     const item = items[i];
     const open = () => openLightbox(p, i);
-    main.replaceChildren(
-      isVideo(item)
-        ? el('div', { class: 'g-video' }, videoEl(item, p), el('button', { class: 'g-expand', type: 'button', 'aria-label': t('img.open'), onclick: open, text: '⤢' }))
-        : el('button', { class: 'g-image', type: 'button', 'aria-label': t('img.open'), onclick: open }, shotImg(item, p, i, 'eager'), el('span', { class: 'g-zoom', 'aria-hidden': 'true', text: '⤢' })),
-    );
-    cap.textContent = [caption(item, i, items), items.length > 1 ? `${i + 1} / ${items.length}` : ''].filter(Boolean).join(' · ');
+    showing = i;
+    main.style.aspectRatio = '';
+    const count = items.length > 1 ? `${i + 1} / ${items.length}` : '';
+    cap.textContent = [caption(item, i, items), count].filter(Boolean).join(' · ');
+    actions.replaceChildren();
+    if (isPdf(item)) {
+      // The page opens the PDF in the browser's own viewer; the buttons open or save it.
+      main.replaceChildren(el('a', { class: 'g-pdf', href: item.src, target: '_blank', rel: 'noopener', 'aria-label': t('pdf.open') }, pdfThumb(item, p, i, items)));
+      actions.append(
+        el('a', { class: 'btn btn-primary', href: item.src, target: '_blank', rel: 'noopener', text: t('pdf.open') }),
+        el('a', { class: 'btn btn-ghost', href: item.src, download: '', text: t('pdf.download') }),
+      );
+      pdfCover(item.src)
+        .then(({ pages, ratio }) => {
+          if (showing !== i) return;
+          if (ratio < 1) main.style.aspectRatio = String(Math.max(ratio, 0.6)); // a portrait page keeps its shape
+          cap.textContent = [caption(item, i, items), t('pdf.pages', { n: pages }), count].filter(Boolean).join(' · ');
+        })
+        .catch(() => {});
+    } else {
+      main.replaceChildren(
+        isVideo(item)
+          ? el('div', { class: 'g-video' }, videoEl(item, p), el('button', { class: 'g-expand', type: 'button', 'aria-label': t('img.open'), onclick: open, text: '⤢' }))
+          : el('button', { class: 'g-image', type: 'button', 'aria-label': t('img.open'), onclick: open }, shotImg(item, p, i, 'eager'), el('span', { class: 'g-zoom', 'aria-hidden': 'true', text: '⤢' })),
+      );
+    }
     thumbs?.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-current', String(j === i)));
   };
   items.forEach((item, i) =>
@@ -214,12 +280,12 @@ function gallery(p) {
       el(
         'button',
         { class: `g-thumb${isVideo(item) ? ' g-thumb-video' : ''}`, type: 'button', 'aria-label': isVideo(item) ? t('img.playVideo') : t('img.show', { n: i + 1 }), onclick: () => show(i) },
-        isVideo(item) ? [videoEl(item, p, { thumb: true }), el('span', { class: 'g-play', 'aria-hidden': 'true' })] : shotImg(item, p, i),
+        isVideo(item) ? [videoEl(item, p, { thumb: true }), el('span', { class: 'g-play', 'aria-hidden': 'true' })] : isPdf(item) ? pdfThumb(item, p, i, items) : shotImg(item, p, i),
       ),
     ),
   );
   show(0);
-  return el('figure', { class: 'p-gallery' }, main, cap, thumbs);
+  return el('figure', { class: 'p-gallery' }, main, actions, cap, thumbs);
 }
 
 let lb = null;
@@ -235,7 +301,7 @@ function renderLightbox() {
   const imgs = lb.p.media.images;
   const im = imgs[lb.i];
   $('.lb-figure', lightbox).replaceChildren(
-    isVideo(im) ? videoEl(im, lb.p, { autoplay: true }) : shotImg(im, lb.p, lb.i, 'eager'),
+    isVideo(im) ? videoEl(im, lb.p, { autoplay: true }) : isPdf(im) ? pdfThumb(im, lb.p, lb.i, imgs) : shotImg(im, lb.p, lb.i, 'eager'),
     el('figcaption', { text: [title(lb.p), caption(im, lb.i, imgs), `${lb.i + 1} / ${imgs.length}`].join(' · ') }),
   );
   $('.lb-prev', lightbox).hidden = $('.lb-next', lightbox).hidden = imgs.length < 2;
@@ -283,6 +349,7 @@ function progress(p) {
 function linkButtons(p) {
   const links = [];
   if (p.links?.live) links.push(el('a', { class: 'btn btn-primary', href: p.links.live, target: '_blank', rel: 'noopener', text: t('btn.live') }));
+  if (p.links?.design) links.push(el('a', { class: `btn ${links.length ? 'btn-ghost' : 'btn-primary'}`, href: p.links.design, target: '_blank', rel: 'noopener', text: t('btn.design') }));
   if (p.links?.repo) links.push(el('a', { class: 'btn btn-ghost', href: p.links.repo, target: '_blank', rel: 'noopener', text: t('btn.code') }));
   return links.length ? el('div', { class: 'p-actions' }, links) : null;
 }
@@ -399,7 +466,7 @@ function card(p) {
   return el(
     'article',
     { class: `card${count ? ' card-match' : ''}`, style: `--tint: ${tint(p)}` },
-    cover && el('div', { class: 'card-cover' }, shotImg(cover, p, p.media.images.indexOf(cover))),
+    cover && el('div', { class: 'card-cover' }, isPdf(cover) ? pdfThumb(cover, p, p.media.images.indexOf(cover)) : shotImg(cover, p, p.media.images.indexOf(cover))),
     el('div', { class: 'card-top' }, el('span', { class: 'card-icon', 'aria-hidden': 'true' }, iconImg(p.icon)), el('p', { class: 'eyebrow', text: eyebrow })),
     el('h3', { text: title(p) }),
     el('p', { class: 'card-tagline', text: tp(p, 'tagline') }),

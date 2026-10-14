@@ -32,7 +32,7 @@ export const site = {
       'I also design and build my own platforms to go deeper on architecture, security and developer experience.',
       'My goal is to grow into a technical leader who ships high-quality systems and helps the team around them do the same.',
     ],
-    education: { degree: 'B.Sc. Computer Science', school: "Faculty of Science, King Mongkut's Institute of Technology Ladkrabang (KMITL)" },
+    education: { degree: 'B.Sc. Computer Science, First Class Honors (GPAX 3.56)', school: "Faculty of Science, King Mongkut's Institute of Technology Ladkrabang (KMITL)" },
     // Review this list: it combines your CV with the stacks used in your projects.
     skills: [
       { label: 'Languages', items: ['TypeScript', 'JavaScript', 'Python', 'Go', 'PHP', 'C#', 'SQL', 'HTML', 'CSS'] },
@@ -66,13 +66,21 @@ export const places = [
     kind: 'education',
     icon: 'certificate',
     title: 'KMITL',
-    tagline: 'B.Sc. Computer Science',
+    tagline: 'B.Sc. Computer Science · First Class Honors',
+    period: 'Aug 2020 – May 2024',
     status: null,
     at: { pos: [-5.4, -1.35] },
     model: { file: 'commercial/building-n.glb', scale: 0.72 },
-    summary: "Bachelor of Science in Computer Science, Faculty of Science, King Mongkut's Institute of Technology Ladkrabang. Where the road through town starts.",
-    highlights: ['Special problem project: Laptop Recommendation, a web app driven by a rule-based expert system.'],
+    summary: "Bachelor of Science in Computer Science with First Class Honors, Faculty of Science, King Mongkut's Institute of Technology Ladkrabang, 2020–2024. Where the road through town starts.",
+    highlights: [
+      'First Class Honors, with a cumulative GPA of 3.56 over 136 credits.',
+      'Special problem project: Laptop Recommendation, a web app driven by a rule-based expert system.',
+    ],
     layers: [],
+    // The transcript, with the date of birth and student ID covered. Keep the unredacted original off the site.
+    media: {
+      images: [{ src: 'assets/projects/kmitl/transcript.pdf', type: 'pdf', caption: { en: 'Transcript of records', th: 'ใบแสดงผลการศึกษา' } }],
+    },
   },
   {
     id: 'fictionthai',
@@ -252,7 +260,7 @@ export const places = [
       { kind: 'frontend', items: ['HTML', 'CSS', 'Bootstrap'] },
       { kind: 'backend', items: ['PHP'] },
     ],
-    links: { live: '' }, // TODO: live URL
+    links: { live: 'https://elib.nk.ac.th/' },
     media: gallery('nk-digital-library', 3),
   },
   {
@@ -275,7 +283,7 @@ export const places = [
       { kind: 'frontend', items: ['HTML', 'CSS', 'Bootstrap'] },
       { kind: 'backend', items: ['PHP'] },
     ],
-    links: { live: '' }, // TODO: live URL
+    links: { live: 'https://thaibf.belib.app/' },
     media: gallery('thai-breastfeeding-center', 3),
   },
   {
@@ -321,7 +329,7 @@ export const places = [
     category: 'Full-stack project',
     status: 'building',
     progress: { value: 123, total: 164, label: 'API endpoints built, with tests' },
-    at: { pos: [1.0, 1.6] },
+    at: { pos: [0.9, 1.6] },
     model: { file: 'commercial/building-a.glb', scale: 1 },
     summary:
       "Covers a clinic's whole day: customers book, check in, wait to be called, see the vet, get their medical record written, pay and receive a receipt. Plus everything behind it: branches, staff, services, customers and pets.",
@@ -343,6 +351,8 @@ export const places = [
   },
   {
     // The project README spells it "MeowBark AI". Pick one spelling and use it everywhere.
+    // Hidden until there is more to show. Delete the next line to put it back in town.
+    hidden: true,
     id: 'mewbark-ai',
     kind: 'project',
     icon: 'bot_sparkle',
@@ -380,7 +390,7 @@ export const places = [
     tagline: 'Reads a Thai sentence and names the feeling',
     category: 'Machine learning project',
     status: null,
-    at: { pos: [4.8, 1.6] },
+    at: { pos: [2.4, 1.6] },
     model: { file: 'commercial/building-d.glb', scale: 0.9 },
     summary: 'A web application that classifies Thai sentences into four emotions: happiness, sadness, love and anger.',
     highlights: [
@@ -394,5 +404,60 @@ export const places = [
     ],
     links: { live: '', repo: '' },
     media: gallery('thai-emotion-detection', 3),
+  },
+  {
+    // Written from https://github.com/MildRinrada/Movie-Recommendation-Bot-Line and the project deck.
+    id: 'line-movie-bot',
+    kind: 'project',
+    icon: 'video',
+    title: 'LINE Chatbot “วันนี้ดูอะไร”',
+    short: 'Movie Bot',
+    tagline: 'A LINE chatbot that recommends movies',
+    category: 'Chatbot project',
+    status: null,
+    at: { pos: [3.9, 1.6] },
+    model: { file: 'commercial/building-h.glb', scale: 0.85 },
+    summary:
+      'A LINE chatbot that suggests what to watch. Users ask by genre, language, year, any mix of the three, or just for a surprise, and the bot picks a matching film and sends its poster, title, where to watch it, a description and a button to the trailer.',
+    highlights: [
+      'Recommends films by preferred genre, language and year, or picks one at random when the user has no preference.',
+      'Dialogflow understands the request and a Node.js (Express) webhook built with dialogflow-fulfillment chooses a film that matches every condition.',
+      'Replies as a LINE buttons template: poster, title, where to watch and a "watch the trailer" button, followed by the film’s description.',
+      'Film data from a CSV of about 200 titles, each with a poster, description, release year, language and up to three genres.',
+    ],
+    layers: [
+      { kind: 'frontend', items: ['LINE Messaging API', 'Buttons template'] },
+      { kind: 'backend', items: ['Node.js', 'Express', 'Dialogflow', 'dialogflow-fulfillment'] },
+      { kind: 'data', items: ['CSV dataset'] },
+    ],
+    links: { live: '', repo: 'https://github.com/MildRinrada/Movie-Recommendation-Bot-Line' },
+    // A PDF shows its first page as the thumbnail, with buttons to open and download it.
+    media: { images: [{ src: 'assets/projects/line-movie-bot/project-AI.pdf', type: 'pdf' }] },
+  },
+  {
+    id: 'kpop-mart',
+    kind: 'project',
+    icon: 'headphones',
+    title: 'K-Pop Mart Thailand',
+    short: 'K-Pop Mart',
+    tagline: 'UI design for an online K-pop album store',
+    category: 'UI design · University group project',
+    status: null,
+    at: { pos: [5.75, 1.6] },
+    model: { file: 'commercial/building-b.glb', scale: 0.9 },
+    summary:
+      'A university group project: the design of an online shop for K-pop albums, made in Figma. It covers browsing albums by cover art, weekly best-sellers, search, a wishlist, a cart and notifications, in both Thai and English.',
+    highlights: [
+      'Album-first browsing: a cover-art grid with title, artist and price in baht, plus a heart to add to the wishlist.',
+      'Weekly best-sellers, search, cart, notifications and a signed-in profile in the top bar.',
+      'A side menu for home, favourites, profile, settings and help, with a Thai / English switch.',
+      // TODO: add what you did in the team, e.g. which screens you designed or the user research you ran.
+    ],
+    layers: [{ kind: 'frontend', items: ['Figma', 'UI design', 'Prototype'] }],
+    // The design opens in Figma's read-only viewer (embed link), so visitors can look but not edit.
+    links: {
+      design: 'https://embed.figma.com/design/f1noWusGb4P6HAkWi5XBJZ?node-id=1075-10278&embed-host=share',
+    },
+    media: gallery('kpop-mart', 5),
   },
 ];

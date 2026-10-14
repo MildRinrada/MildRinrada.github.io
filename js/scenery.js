@@ -42,7 +42,7 @@ export const greenery = [
   { file: 'suburban/tree-small.glb', pos: [4.5, -0.75] },
   { file: 'suburban/tree-small.glb', pos: [-3.95, 2.3] },
   { file: 'suburban/tree-small.glb', pos: [0.0, 2.3] },
-  { file: 'suburban/tree-small.glb', pos: [3.85, 2.3] },
+  { file: 'suburban/tree-small.glb', pos: [3.15, 2.3] },
 ];
 
 // Street lamps on the south kerb of each street, arms reaching over the road.
@@ -61,5 +61,5 @@ export const walkLoop = [
   [-6.0, PARK_STREET_Z + 0.32],
 ];
 
-// The cat wanders the pavement in front of Happy Paws and MewBark.
+// The cat wanders the pavement in front of Happy Paws and its neighbours.
 export const catZone = { minX: 0.3, maxX: 3.7, minZ: PARK_STREET_Z - 0.62, maxZ: PARK_STREET_Z - 0.48 };

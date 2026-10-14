@@ -1281,6 +1281,74 @@ body.is-blueprint .legend-blueprint {
   text-align: center;
 }
 
+/* PDF: the first page as the picture, buttons underneath */
+.g-pdf {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-2);
+}
+
+.pdf-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pdf-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #e0565b;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.g-thumb .pdf-badge {
+  top: 3px;
+  left: 3px;
+  padding: 1px 5px;
+  font-size: 8.5px;
+}
+
+.g-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.g-actions:empty {
+  display: none;
+}
+
+.card-cover .pdf-thumb img,
+.lb-figure .pdf-thumb img {
+  object-fit: contain;
+}
+
+.lb-figure .pdf-thumb {
+  width: min(1100px, 92vw);
+  height: auto;
+}
+
+.card-cover .pdf-portrait img {
+  object-fit: cover;
+  object-position: top;
+}
+
 /* about */
 .p-photo,
 .brand-photo,

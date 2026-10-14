@@ -73,6 +73,7 @@ export const SKILLS = [
   { name: 'Auth (JWT / OAuth / 2FA)', find: /\bjwt\b|\boauth\b|\bsso\b|\bauthenticat(?:e|ion)\b|\b2fa\b|\bmfa\b/i, have: /^(jwt|nextauth)/i, places: ['securesight', 'happy-paws-clinic', 'kawaiibake', 'customer-service'] },
   { name: 'Machine learning / NLP', find: /\bmachine learning\b|\bml\b|\bnlp\b|\bnatural language\b|\bscikit|\bclassification\b/i, have: /naive bayes|attacut|ml services/i },
   { name: 'AI / LLM', find: /\bllms?\b|\bgen(?:erative)?\s*ai\b|\bopenai\b|\bgpt\b|\bchatbots?\b|\bai\b/i, have: /openai|pgvector/i, places: ['fictionthai', 'kawaiibake', 'customer-service'] },
+  { name: 'Chatbots / NLU', find: /chat ?bots?|dialogflow|nlu|conversational/i, have: /dialogflow/i, places: ['line-movie-bot', 'mewbark-ai', 'customer-service'] },
   { name: 'LINE Messaging API', find: /\bline\s*(?:oa|official account|messaging|api|bot|liff)\b|\bliff\b/i, have: /^line /i },
   { name: 'Workflow automation (n8n)', find: /\bn8n\b|\bworkflow automation\b|\bzapier\b/i, have: /^n8n/i },
   { name: 'Figma', find: /\bfigma\b/i, have: /^figma/i },
