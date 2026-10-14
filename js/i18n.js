@@ -43,7 +43,7 @@ const UI = {
     'intro.tour': 'Show me around (1 minute)',
     'intro.list': 'Just show me the list',
     'intro.bodyFit': 'Every building here is a system I designed and built, and one lot is reserved for you. The short version first:',
-    'fit.why': 'Why I fit a {role} role',
+    'fit.why': 'Why me for {role}',
     'fit.picks': 'The closest work',
     'fit.startNow': 'Can start right away',
     'fit.startDays': 'Can start {n} days after an offer',

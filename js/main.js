@@ -667,8 +667,7 @@ function fitCard() {
       { class: 'fit-picks' },
       picks.map((p) => el('button', { class: 'fit-pick', type: 'button', style: `--tint: ${tint(p)}`, onclick: () => select(p.id) }, iconImg(p.icon), el('span', { text: tp(p, 'short') ?? title(p) }))),
     ),
-    facts.length ? el('div', { class: 'fit-facts' }, facts.map((f) => el('span', { class: 'chip', text: f }))) : null,
-    el('div', { class: 'fit-actions' }, reach, cv),
+    el('div', { class: 'fit-foot' }, facts.map((f) => el('span', { class: 'chip', text: f })), el('div', { class: 'fit-actions' }, reach, cv)),
   );
 }
 
