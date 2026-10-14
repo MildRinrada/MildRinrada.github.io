@@ -45,7 +45,7 @@ export const SKILLS = [
   { name: 'REST APIs', find: /\brest(?:ful)?\b|\bapis?\b/i, have: /^$/, places: ['kawaiibake', 'happy-paws-clinic', 'securesight', 'fictionthai', 'customer-service', 'mewbark-ai'] },
   { name: 'OpenAPI / Swagger', find: /\bopenapi\b|\bswagger\b/i, have: /^openapi/i, places: ['kawaiibake', 'happy-paws-clinic'] },
   { name: 'GraphQL', find: /\bgraphql\b/i, have: /^graphql/i },
-  { name: 'WebSocket / real-time', find: /\bwebsockets?\b|\bsocket\.io\b|\breal-?time\b/i, have: /websocket/i },
+  { name: 'WebSocket / real-time', find: /\bwebsockets?\b|\bsocket\.io\b|\breal-?time\b/i, have: /websocket|server-sent/i },
   { name: 'ORM', find: /\borm\b|\bprisma\b|\bsqlalchemy\b|\bentity framework\b|\bef core\b|\bgorm\b/i, have: /prisma|gorm|ef core|sqlalchemy/i },
   { name: 'Background jobs & queues', find: /\bcelery\b|\bbullmq\b|\bjob queues?\b|\bmessage queues?\b|\bbackground (?:jobs?|tasks?)\b/i, have: /celery|bullmq/i },
   { name: 'Kafka / RabbitMQ', find: /\bkafka\b|\brabbitmq\b/i, have: /kafka|rabbitmq/i },

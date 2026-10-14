@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>MildRinrada Town · Rinrada, Full-Stack Developer</title>
+  <title>MildRinrada Town | Rinrada, Full-Stack Developer</title>
   <meta name="description" content="Rinrada (Mild), Full-Stack Developer. A small 3D town where every building is a system I designed and built, from the storefront down to the database.">
-  <meta property="og:title" content="MildRinrada Town · Rinrada, Full-Stack Developer">
+  <meta property="og:title" content="MildRinrada Town | Rinrada, Full-Stack Developer">
   <meta property="og:description" content="Every building in this town is a system I designed and built.">
   <meta name="theme-color" content="#c3d7e9">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%23ff8a6b%27/%3E%3Cstop offset=%271%27 stop-color=%27%23ff5277%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2732%27 fill=%27url(%23g)%27/%3E%3Ctext x=%2732%27 y=%2741%27 font-family=%27Arial,sans-serif%27 font-weight=%27700%27 font-size=%2726%27 text-anchor=%27middle%27 fill=%27white%27%3EMR%3C/text%3E%3C/svg%3E">
@@ -40,11 +40,15 @@
       <span class="brand-mark" aria-hidden="true">MR</span>
       <span class="brand-text">
         <strong>MildRinrada Town</strong>
-        <small data-i18n="brand.small">Rinrada · Full-Stack Developer</small>
+        <small data-i18n="brand.small">Rinrada, Full-Stack Developer</small>
       </span>
     </button>
 
     <nav class="controls" aria-label="View controls">
+      <button id="btn-tour" class="ctl ctl-tour" type="button" aria-controls="tour">
+        <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+        <span class="ctl-label" data-i18n="tour.button">Tour the town</span>
+      </button>
       <button id="btn-time" class="ctl" type="button" aria-pressed="false">
         <svg class="i i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
         <svg class="i i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>
@@ -73,7 +77,7 @@
   </header>
 
   <div class="hud-bottom">
-    <p class="hint"><span class="hint-desktop" data-i18n="hint.desktop">Drag to orbit · Scroll to zoom · Click a building</span><span class="hint-touch" data-i18n="hint.touch">Drag to orbit · Pinch to zoom · Tap a building</span></p>
+    <p class="hint"><span class="hint-desktop" data-i18n="hint.desktop">Drag to orbit, scroll to zoom, click a building</span><span class="hint-touch" data-i18n="hint.touch">Drag to orbit, pinch to zoom, tap a building</span></p>
     <p class="legend legend-night" data-i18n="legend.night">Lit windows = running in production</p>
     <p class="legend legend-blueprint">
       <span class="key key-frontend" data-i18n="layer.frontend">Frontend</span>
@@ -86,12 +90,16 @@
       <span class="match-chip-text"></span>
       <span class="match-chip-x" aria-hidden="true">×</span>
     </button>
+    <button id="btn-tour-m" class="tour-chip" type="button" aria-controls="tour">
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+      <span data-i18n="tour.button">Tour the town</span>
+    </button>
     <button id="weather" class="weather" type="button">
       <span class="wx-icon" aria-hidden="true"></span>
       <span class="wx-text">Bangkok</span>
       <span class="wx-live">LIVE</span>
     </button>
-    <a class="credit" href="https://kenney.nl" target="_blank" rel="noopener" data-i18n="credit">3D models by Kenney · CC0</a>
+    <a class="credit" href="https://kenney.nl" target="_blank" rel="noopener" data-i18n="credit">3D models by Kenney (CC0)</a>
     <button id="btn-terminal" class="term-toggle" type="button" aria-expanded="false" aria-controls="terminal" title="Terminal (press `)">&gt;_</button>
   </div>
 
@@ -106,7 +114,7 @@
     <div class="list-inner">
       <header class="list-head">
         <div>
-          <p class="eyebrow">Rinrada (Mild) · Full-Stack Developer</p>
+          <p class="eyebrow">Rinrada (Mild), Full-Stack Developer</p>
           <h2 id="list-title" data-i18n="list.title">Everything in town</h2>
         </div>
         <button class="list-close ctl" type="button">
@@ -123,10 +131,11 @@
     <div class="intro-card" role="dialog" aria-labelledby="intro-title">
       <div class="intro-who"><p class="eyebrow intro-eyebrow" data-i18n="intro.eyebrow">MildRinrada Town</p></div>
       <h1 id="intro-title">Welcome to my town</h1>
-      <p class="intro-sub">Rinrada (Mild) · Full-Stack Developer</p>
+      <p class="intro-sub">Rinrada (Mild), Full-Stack Developer</p>
       <p class="intro-body">Every building here is a system I designed and built. Click one to step inside, or switch on <b>Blueprint</b> to see the stack under every roof: frontend on top, database in the basement.</p>
       <div class="intro-actions">
         <button class="btn btn-primary" type="button" data-intro="explore" data-i18n="intro.explore">Explore the town</button>
+        <button class="btn btn-ghost intro-tour" type="button" data-intro="tour" data-i18n="intro.tour">Show me around (1 minute)</button>
         <button class="btn btn-ghost" type="button" data-intro="list" data-i18n="intro.list">Just show me the list</button>
       </div>
     </div>
@@ -167,6 +176,8 @@
 
   <section id="cv" class="cv" aria-hidden="true"></section>
 
+  <section id="tour" class="tour" aria-label="Guided tour" aria-live="polite" inert></section>
+
   <section id="terminal" class="terminal" aria-label="Terminal" inert>
     <header class="term-bar">
       <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -186,6 +197,12 @@
 
   <div id="loader" class="loader" role="status" aria-live="polite">
     <div class="loader-card">
+      <div class="loader-icons" aria-hidden="true">
+        <img src="assets/icons/building_store.svg" alt="">
+        <img src="assets/icons/book_open.svg" alt="">
+        <img src="assets/icons/shield_checkmark.svg" alt="">
+        <img src="assets/icons/headphones.svg" alt="">
+      </div>
       <div class="loader-bar"><span></span></div>
       <p><span data-i18n="loading">Building the town…</span> <span class="loader-pct">0%</span></p>
     </div>

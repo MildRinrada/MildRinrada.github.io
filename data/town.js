@@ -8,7 +8,7 @@
 // Overwrite them with your screenshots and keep the file names. To add more, drop 04.png next to them
 // and add a line to that place's media.images below. See assets/projects/README.md.
 //
-// status: 'live' (lights on at night) · 'building' (scaffolding, optional progress) · null (no badge)
+// status: 'live' (lights on at night), 'building' (scaffolding, optional progress) or null (no badge)
 // icon: a file name in assets/icons/ (Fluent UI System Icons, colour set, MIT licence)
 
 export const site = {
@@ -20,6 +20,16 @@ export const site = {
   email: '', // TODO: public contact email. The email button stays hidden while this is empty.
   linkedin: '', // TODO
   resume: 'assets/resume.pdf', // Drop the PDF here and the Résumé button appears on its own.
+
+  // Visit counts with GoatCounter (free, no cookies). Sign up at https://www.goatcounter.com and put your
+  // site code here, e.g. 'mildrinrada' for mildrinrada.goatcounter.com. Empty = off. See js/analytics.js.
+  // Keep your own visits out by opening the site once with ?notrack=1.
+  analytics: { goatcounter: '' },
+
+  // "Send me a message" form via EmailJS (free, 200 emails a month). Fill all three from emailjs.com
+  // (Email Services → Service ID, Email Templates → Template ID, Account → Public Key). Empty = no form.
+  // The template can use {{from_name}}, {{reply_to}}, {{company}}, {{message}} and {{page}}.
+  contact: { emailjs: { serviceId: '', templateId: '', publicKey: '' } },
   photo: 'assets/profile/photo.png', // Your photo: square, about 800 × 800. Overwrite the template file.
   // The little character who walks around town and opens About me when clicked.
   // 12 to choose from: characters/character-female-a … f and characters/character-male-a … f.
@@ -44,7 +54,7 @@ export const site = {
 };
 
 // Layer kinds drive the blueprint view and the stack chips in the panel:
-// frontend (top floor) · backend (middle) · infra (ground floor) · data (basement, below the street)
+// frontend (top floor), backend (middle), infra (ground floor), data (basement, below the street)
 export const LAYER_LABELS = {
   frontend: 'Frontend',
   backend: 'Backend',
@@ -59,6 +69,26 @@ const gallery = (id, count) => ({
   images: Array.from({ length: count }, (_, i) => ({ src: `assets/projects/${id}/${String(i + 1).padStart(2, '0')}.png` })),
 });
 
+// The one-minute tour ("Tour the town" button): the buildings in the order the camera visits them,
+// roughly in the order the work happened. Reorder freely; ids that are hidden or missing are skipped.
+export const tour = [
+  'kmitl',
+  'laptop-recommendation',
+  'thai-emotion-detection',
+  'line-movie-bot',
+  'kpop-mart',
+  'mildtutor',
+  'nk-digital-library',
+  'thai-breastfeeding-center',
+  'securesight',
+  'kawaiibake',
+  'fictionthai',
+  'happy-paws-clinic',
+  'customer-service',
+  'bookdose',
+  'next-lot',
+];
+
 export const places = [
   // ---------------- row 1, behind Main Street ----------------
   {
@@ -66,7 +96,7 @@ export const places = [
     kind: 'education',
     icon: 'certificate',
     title: 'KMITL',
-    tagline: 'B.Sc. Computer Science · First Class Honors',
+    tagline: 'B.Sc. Computer Science, First Class Honors',
     period: 'Aug 2020 – May 2024',
     status: null,
     at: { pos: [-5.4, -1.35] },
@@ -217,7 +247,7 @@ export const places = [
     short: 'Laptop Advisor',
     // Written from C:\Portfolio Project\Web-Application-For-Laptops-Recommendation (README, docs/UI.md, app/).
     tagline: 'Laptop advice from a rule-based expert system',
-    category: 'Special problem project · KMITL',
+    category: 'Special problem project, KMITL',
     status: null,
     at: { pos: [5.4, -1.3] },
     model: { file: 'commercial/building-c.glb', scale: 1.1 },
@@ -326,28 +356,29 @@ export const places = [
     icon: 'animal_paw_print',
     title: 'Happy Paws Clinic',
     short: 'Happy Paws',
-    tagline: 'Veterinary clinic management system',
-    category: 'Full-stack project',
-    status: 'building',
-    progress: { value: 123, total: 164, label: 'API endpoints built, with tests' },
+    tagline: 'Veterinary clinic system, demo version',
+    category: 'Full-stack project (demo)',
+    // Written from the demo repo (C:\Portfolio Project\Happy Paws Clinic copy): the part of the system shown
+    // to people, not the product being sold, so no build progress is shown.
+    status: null,
     at: { pos: [0.9, 1.6] },
     model: { file: 'commercial/building-a.glb', scale: 1 },
     summary:
-      "Covers a clinic's whole day: customers book, check in, wait to be called, see the vet, get their medical record written, pay and receive a receipt. Plus everything behind it: branches, staff, services, customers and pets.",
+      'A demo of a full-stack veterinary clinic system: the clinic’s public website with online booking, and the staff side with sign-in, a live queue board, an appointment calendar and the customer and pet register.',
     highlights: [
-      'Contract-first API: 164 endpoints in the contract, 123 built with tests, and 21 extra endpoints each documented with a reason.',
-      'Daily operations complete in the API: booking, queue, examination, medical records, invoices, payments and receipts.',
-      'Ongoing care: vaccines, weight charts, labs, medication history, treatment plans, document uploads, PDFs and advanced appointments.',
-      'Customer sign-up with phone number and OTP; staff sign-in with password plus an authenticator app.',
-      'The browser only talks to the Next.js server, which keeps the API token in a cookie JavaScript cannot read.',
+      'Public website: services and prices, the vet team, pet-health articles, an emergency page showing which branches are open right now, and a vaccine schedule calculator. Every part reads from the real API, with sitemap and structured data for SEO.',
+      'Online booking without an account: pick a service and a free slot, the slot is held for 10 minutes while a phone OTP is verified, and a returning number links to the existing record. A PostgreSQL exclusion constraint stops double bookings, and an Idempotency-Key makes a repeated confirm book only once.',
+      'Staff sign-in with password and authenticator (TOTP); a real-time queue board over Server-Sent Events, with waiting-room TV screens paired by a one-time code that show only queue numbers and rooms.',
+      'A day calendar with a column per vet, and a customer and pet register with search by name, phone, HN or pet, automatic HN numbers and allergy warnings.',
+      'Clean Architecture, httpOnly-cookie sessions with refresh rotation, scope-based permissions that deny by default, optimistic concurrency, rate limits, and 364 unit plus 402 integration tests against a real PostgreSQL via Testcontainers.',
     ],
     layers: [
-      { kind: 'frontend', items: ['Next.js 15', 'React 19', 'TypeScript', 'Tailwind CSS 4'] },
-      { kind: 'backend', items: ['C#', 'ASP.NET Core 10', 'EF Core 10'] },
-      { kind: 'infra', items: ['Docker Compose'] },
+      { kind: 'frontend', items: ['Next.js 15', 'React 19', 'TypeScript', 'Tailwind CSS 4', 'Zod'] },
+      { kind: 'backend', items: ['C#', 'ASP.NET Core 10', 'EF Core 10', 'FluentValidation', 'Server-Sent Events'] },
+      { kind: 'infra', items: ['Docker Compose', 'xUnit', 'Testcontainers'] },
       { kind: 'data', items: ['PostgreSQL 17'] },
     ],
-    links: { live: '', repo: '' },
+    links: { live: '', repo: 'https://github.com/MildRinrada/Happy-Paws-Clinic-Demo' },
     media: gallery('happy-paws-clinic', 3),
   },
   {
@@ -442,7 +473,7 @@ export const places = [
     title: 'K-Pop Mart Thailand',
     short: 'K-Pop Mart',
     tagline: 'UI design for an online K-pop album store',
-    category: 'UI design · University group project',
+    category: 'UI design, university group project',
     status: null,
     at: { pos: [5.75, 1.6] },
     model: { file: 'commercial/building-b.glb', scale: 0.9 },
@@ -469,7 +500,7 @@ export const places = [
     icon: 'book_star',
     title: 'MildTutor',
     tagline: 'Online course app, designed in Figma',
-    category: 'App UI design · Solo project',
+    category: 'App UI design, solo project',
     status: null,
     at: { pos: [-2.15, 4.12] },
     model: { file: 'suburban/building-type-l.glb', scale: 0.95 },

@@ -7,7 +7,7 @@ const BANNER = String.raw`
   | |__| |  |   |  | |   | # |   _
   | #  # |  | # |__| |___| # |__| |
  =================================
-  MildRinrada Town shell · v1.0`;
+  MildRinrada Town shell v1.0`;
 
 export function createTerminal({ places, site, company, actions }) {
   const root = document.querySelector('#terminal');
@@ -62,6 +62,7 @@ export function createTerminal({ places, site, company, actions }) {
         ['fireworks', ''],
         ['contact', 'how to reach me'],
         ['cv', 'print a one-page CV'],
+        ['tour', 'a one-minute guided tour'],
         ['sudo hire mild', ':)'],
         ['clear | exit', ''],
       ].forEach(([c, d]) => line(`  ${c.padEnd(40)}${d}`));
@@ -88,7 +89,7 @@ export function createTerminal({ places, site, company, actions }) {
     cat(arg) {
       if (!arg) return line('usage: cat <name>   (see: ls buildings)', 'ln-err');
       if (arg === 'about.txt' || arg === 'about') {
-        line(`${site.name} (${site.nickname}) · ${site.role}`, 'ln-head');
+        line(`${site.name} (${site.nickname}), ${site.role}`, 'ln-head');
         line(site.about.headline);
         site.about.bio.forEach((t) => line(t, 'ln-dim'));
         line(`${site.about.education.degree}, ${site.about.education.school}`);
@@ -129,7 +130,7 @@ export function createTerminal({ places, site, company, actions }) {
       for (const p of places) for (const l of p.layers ?? []) for (const i of l.items) all.set(i, (all.get(i) ?? 0) + 1);
       const sorted = [...all.entries()].sort((a, b) => b[1] - a[1]);
       line(`${sorted.length} technologies across ${places.filter((p) => p.layers?.length).length} buildings`, 'ln-head');
-      line(sorted.map(([n, c]) => (c > 1 ? `${n} ×${c}` : n)).join(' · '));
+      line(sorted.map(([n, c]) => (c > 1 ? `${n} ×${c}` : n)).join(', '));
     },
     async weather(arg) {
       const kinds = ['live', 'clear', 'cloudy', 'rain', 'storm'];
@@ -154,7 +155,7 @@ export function createTerminal({ places, site, company, actions }) {
       if (!arg || arg === 'list') {
         line('Characters:', 'ln-head');
         line(AVATARS.join('  '));
-        line(`Now: ${site.avatar.replace('characters/character-', '').replace('.glb', '')} · try: avatar female-b`, 'ln-dim');
+        line(`Now: ${site.avatar.replace('characters/character-', '').replace('.glb', '')}. Try: avatar female-b`, 'ln-dim');
         return;
       }
       if (!AVATARS.includes(arg)) return line(`avatar: '${arg}' not found. Try: avatar list`, 'ln-err');
@@ -163,6 +164,14 @@ export function createTerminal({ places, site, company, actions }) {
       await actions.avatar(`characters/character-${arg}.glb`);
       line(`✓ Now walking around as ${arg}.`, 'ln-ok');
       line(`To keep it, set avatar: 'characters/character-${arg}.glb' in data/town.js`, 'ln-dim');
+    },
+    tour() {
+      if (!actions.hasWorld()) return line('tour: the 3D town is not running here.', 'ln-err');
+      line('Starting the tour…', 'ln-ok');
+      setTimeout(() => {
+        close();
+        actions.tour();
+      }, 300);
     },
     cv() {
       line('Opening the print dialog…', 'ln-ok');

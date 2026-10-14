@@ -845,9 +845,12 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       walker.state = 'walk';
       play(walker.actor, 'walk');
     }
+    // a side panel (inset.left) or a card along the bottom (inset.bottom) leaves less room for the town
     const cw = Math.max(1, canvas.clientWidth);
-    const zoom = HOME.zoom * Math.max(0.55, (cw - (inset.left ?? 0)) / cw);
-    flyTo(inset.left ? offsetForInset(HOME.target.clone(), zoom, inset) : HOME.target, zoom);
+    const ch = Math.max(1, canvas.clientHeight);
+    const room = Math.min((cw - (inset.left ?? 0)) / cw, (ch - (inset.bottom ?? 0)) / ch);
+    const zoom = HOME.zoom * Math.max(0.55, room);
+    flyTo(inset.left || inset.bottom ? offsetForInset(HOME.target.clone(), zoom, inset) : HOME.target, zoom);
   }
 
   // Frame the diorama and every building (plus room for its pin) in the space below the top bar.

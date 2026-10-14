@@ -2,8 +2,12 @@
 // printable CV, Thai/English, live Bangkok weather and the toggles. The 3D scene is loaded from world.js;
 // if WebGL or the CDN is unavailable, the list view takes over.
 
-import { site, places as allPlaces } from '../data/town.js';
+import { site, places as allPlaces, tour as tourOrder } from '../data/town.js';
 import { createTerminal } from './terminal.js';
+import { createTour } from './tour.js';
+import { contactForm, contactReady } from './contact.js';
+import { initAnalytics, track } from './analytics.js';
+import { qrSvg } from './qr.js';
 import { t, tp, ts, skillLabel, getLang, setLangValue, SAMPLE_JD } from './i18n.js';
 import { detectSkills, matchSkills, roleSkills, ROLES } from './skills.js';
 
@@ -43,6 +47,9 @@ let isNight = false;
 let isBlueprint = false;
 let resumeOk = false;
 let match = null; // { kind: 'jd' | 'role', role?, result }
+let tour = null;
+let cvQr = null; // the CV's QR code, made ahead so Ctrl+P can print it straight away
+const emailjs = site.contact?.emailjs;
 
 // Small DOM helper: el('p', { class: 'x', text: 'hi' }, child, [children]). Falsy children are skipped.
 function el(tag, props = {}, ...kids) {
@@ -91,7 +98,7 @@ const tint = (p) => (p.kind === 'about' ? '#f9dcc6' : PASTELS[Math.max(0, places
 
 function statusLabel(p) {
   if (p.status === 'live') return t('status.live');
-  if (p.status === 'building') return pct(p) != null ? `${t('status.building')} · ${pct(p)}%` : t('status.building');
+  if (p.status === 'building') return pct(p) != null ? `${t('status.building')} ${pct(p)}%` : t('status.building');
   return null;
 }
 
@@ -145,7 +152,7 @@ function refreshPins() {
 function makeLayerTag(layer) {
   const kind = el('span', { class: 'layer-kind', text: t(`layer.${layer.kind}`) });
   layerTags.push({ el: kind, kind: layer.kind });
-  return el('div', { class: `layer-tag layer-${layer.kind}` }, kind, el('span', { class: 'layer-items', text: layer.items.join(' · ') }));
+  return el('div', { class: `layer-tag layer-${layer.kind}` }, kind, el('span', { class: 'layer-items', text: layer.items.join(', ') }));
 }
 
 function onHover(id) {
@@ -220,21 +227,34 @@ function shotImg(im, p, i, loading = 'lazy', list = p.media?.images ?? [im]) {
   return img;
 }
 
-// Full player for the panel and the lightbox; a silent first frame for thumbnails.
+// A video's cover: its own `poster`, otherwise the project's first picture.
+const posterOf = (item, p) => item.poster ?? firstImage(p)?.src;
+
+// The full player for the panel and the lightbox. With a cover to show, nothing is downloaded until
+// the visitor presses play: a demo video is many megabytes, and fetching it up front slows every
+// other picture and the 3D town on a phone.
 function videoEl(item, p, { thumb = false, autoplay = false } = {}) {
+  const poster = posterOf(item, p);
   const v = el('video', {
     src: thumb ? `${item.src}#t=0.5` : item.src,
-    poster: item.poster,
+    poster,
     controls: !thumb,
     autoplay,
     muted: thumb,
     playsinline: true,
-    preload: 'metadata',
+    preload: autoplay ? 'auto' : poster ? 'none' : 'metadata',
     'aria-label': `${title(p)}: ${t('img.video')}`,
   });
   if (thumb) v.muted = true;
   v.addEventListener('error', () => v.replaceWith(missing(item)), { once: true });
   return v;
+}
+
+// Thumbnail strip: the cover picture, never a second copy of the video.
+function videoThumb(item, p) {
+  const poster = posterOf(item, p);
+  const face = poster ? el('img', { src: poster, alt: '', loading: 'lazy', decoding: 'async' }) : videoEl(item, p, { thumb: true });
+  return [face, el('span', { class: 'g-play', 'aria-hidden': 'true' })];
 }
 
 function gallery(p) {
@@ -249,8 +269,8 @@ function gallery(p) {
     const open = () => openLightbox(p, i);
     showing = i;
     main.style.aspectRatio = '';
-    const count = items.length > 1 ? `${i + 1} / ${items.length}` : '';
-    cap.textContent = [caption(item, i, items), count].filter(Boolean).join(' · ');
+    const count = items.length > 1 ? `${i + 1}/${items.length}` : '';
+    cap.textContent = [caption(item, i, items), count && `(${count})`].filter(Boolean).join(' ');
     actions.replaceChildren();
     if (isPdf(item)) {
       // The page opens the PDF in the browser's own viewer; the buttons open or save it.
@@ -263,7 +283,7 @@ function gallery(p) {
         .then(({ pages, ratio }) => {
           if (showing !== i) return;
           if (ratio < 1) main.style.aspectRatio = String(Math.max(ratio, 0.6)); // a portrait page keeps its shape
-          cap.textContent = [caption(item, i, items), t('pdf.pages', { n: pages }), count].filter(Boolean).join(' · ');
+          cap.textContent = `${caption(item, i, items)} (${[t('pdf.pages', { n: pages }), count].filter(Boolean).join(', ')})`;
         })
         .catch(() => {});
     } else {
@@ -280,7 +300,7 @@ function gallery(p) {
       el(
         'button',
         { class: `g-thumb${isVideo(item) ? ' g-thumb-video' : ''}`, type: 'button', 'aria-label': isVideo(item) ? t('img.playVideo') : t('img.show', { n: i + 1 }), onclick: () => show(i) },
-        isVideo(item) ? [videoEl(item, p, { thumb: true }), el('span', { class: 'g-play', 'aria-hidden': 'true' })] : isPdf(item) ? pdfThumb(item, p, i, items) : shotImg(item, p, i),
+        isVideo(item) ? videoThumb(item, p) : isPdf(item) ? pdfThumb(item, p, i, items) : shotImg(item, p, i),
       ),
     ),
   );
@@ -302,7 +322,7 @@ function renderLightbox() {
   const im = imgs[lb.i];
   $('.lb-figure', lightbox).replaceChildren(
     isVideo(im) ? videoEl(im, lb.p, { autoplay: true }) : isPdf(im) ? pdfThumb(im, lb.p, lb.i, imgs) : shotImg(im, lb.p, lb.i, 'eager'),
-    el('figcaption', { text: [title(lb.p), caption(im, lb.i, imgs), `${lb.i + 1} / ${imgs.length}`].join(' · ') }),
+    el('figcaption', { text: `${title(lb.p)}: ${caption(im, lb.i, imgs)} (${lb.i + 1}/${imgs.length})` }),
   );
   $('.lb-prev', lightbox).hidden = $('.lb-next', lightbox).hidden = imgs.length < 2;
 }
@@ -348,10 +368,11 @@ function progress(p) {
 
 function linkButtons(p) {
   const links = [];
-  if (p.links?.live) links.push(el('a', { class: 'btn btn-primary', href: p.links.live, target: '_blank', rel: 'noopener', text: t('btn.live') }));
-  if (p.links?.design) links.push(el('a', { class: `btn ${links.length ? 'btn-ghost' : 'btn-primary'}`, href: p.links.design, target: '_blank', rel: 'noopener', text: t('btn.design') }));
-  if (p.links?.repo) links.push(el('a', { class: 'btn btn-ghost', href: p.links.repo, target: '_blank', rel: 'noopener', text: t('btn.code') }));
-  if (p.links?.map) links.push(el('a', { class: 'btn btn-ghost', href: p.links.map, target: '_blank', rel: 'noopener', text: t('btn.map') }));
+  const out = (kind) => () => track(`link/${p.id}/${kind}`);
+  if (p.links?.live) links.push(el('a', { class: 'btn btn-primary', href: p.links.live, target: '_blank', rel: 'noopener', text: t('btn.live'), onclick: out('live') }));
+  if (p.links?.design) links.push(el('a', { class: `btn ${links.length ? 'btn-ghost' : 'btn-primary'}`, href: p.links.design, target: '_blank', rel: 'noopener', text: t('btn.design'), onclick: out('design') }));
+  if (p.links?.repo) links.push(el('a', { class: 'btn btn-ghost', href: p.links.repo, target: '_blank', rel: 'noopener', text: t('btn.code'), onclick: out('repo') }));
+  if (p.links?.map) links.push(el('a', { class: 'btn btn-ghost', href: p.links.map, target: '_blank', rel: 'noopener', text: t('btn.map'), onclick: out('map') }));
   return links.length ? el('div', { class: 'p-actions' }, links) : null;
 }
 
@@ -359,8 +380,9 @@ function contactButtons() {
   return el(
     'div',
     { class: 'p-actions' },
-    site.email && el('a', { class: 'btn btn-primary', href: `mailto:${site.email}`, text: t('btn.email') }),
-    resumeOk && el('a', { class: 'btn btn-ghost', href: site.resume, download: true, text: t('btn.resume') }),
+    contactReady(emailjs) && current !== 'next-lot' && el('button', { class: 'btn btn-primary', type: 'button', onclick: openContact, text: t('contact.button') }),
+    site.email && el('a', { class: `btn ${contactReady(emailjs) ? 'btn-ghost' : 'btn-primary'}`, href: `mailto:${site.email}`, text: t('btn.email') }),
+    resumeOk && el('a', { class: 'btn btn-ghost', href: site.resume, download: true, text: t('btn.resume'), onclick: () => track('resume/download') }),
     el('button', { class: 'btn btn-ghost', type: 'button', onclick: printCv, text: t('btn.printCv') }),
     site.linkedin && el('a', { class: 'btn btn-ghost', href: site.linkedin, target: '_blank', rel: 'noopener', text: 'LinkedIn' }),
     el('a', { class: 'btn btn-ghost', href: site.github, target: '_blank', rel: 'noopener', text: 'GitHub' }),
@@ -400,6 +422,7 @@ function lotParts(p) {
   return [
     head(p.icon, company ? t('lot.eyebrowReserved') : t('lot.eyebrow'), company ? t('lot.reserved', { company }) : t('lot.title')),
     el('p', { class: 'p-summary', text: company ? t('lot.bodyReserved') : t('lot.body') }),
+    contactForm({ cfg: emailjs, el, t, company, onSent: () => track('contact/sent') }),
     contactButtons(),
   ];
 }
@@ -435,6 +458,8 @@ function panelInset() {
 function select(id) {
   const p = byId.get(id);
   if (!p) return;
+  if (tour?.isOpen()) tour.stop({ keepView: true });
+  if (id !== current) track(`open/${id}`, title(p));
   if (mobile.matches) closeMatcher();
   current = id;
   renderPanel(p);
@@ -459,10 +484,35 @@ function closePanel() {
   history.replaceState(null, '', `${location.pathname}${location.search}`);
 }
 
+function openContact() {
+  closeList();
+  closeMatcher();
+  select('next-lot');
+  requestAnimationFrame(() => {
+    const form = $('#contact-form');
+    form?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    form?.querySelector('input')?.focus({ preventScroll: true });
+  });
+}
+
+function startTour() {
+  if (!tour || !world) return;
+  hideIntro();
+  closeList();
+  closeMatcher();
+  if (current) {
+    current = null;
+    panel.classList.remove('open');
+    panel.inert = true;
+    body.classList.remove('has-panel');
+  }
+  tour.start();
+}
+
 // ---------- list view ----------
 function card(p) {
   const cover = firstImage(p);
-  const eyebrow = p.kind === 'work' ? `${t('eyebrow.experience')} · ${tp(p, 'period')}` : p.kind === 'education' ? t('eyebrow.education') : tp(p, 'category');
+  const eyebrow = p.kind === 'work' ? `${t('eyebrow.experience')} (${tp(p, 'period')})` : p.kind === 'education' ? t('eyebrow.education') : tp(p, 'category');
   const count = match?.result.perPlace.get(p.id);
   return el(
     'article',
@@ -497,7 +547,7 @@ function aboutCard() {
       {},
       el('p', { class: 'eyebrow', text: t('eyebrow.about') }),
       el('h3', { text: `${site.name} (${site.nickname})` }),
-      el('p', { class: 'card-tagline', text: `${ts(site, 'role')} · ${ts(site, 'education').degree}` }),
+      el('p', { class: 'card-tagline', text: `${ts(site, 'role')}, ${ts(site, 'education').degree}` }),
       el('p', { class: 'card-summary', text: ts(site, 'headline') }),
       el('button', {
         class: 'btn btn-ghost card-go',
@@ -593,6 +643,7 @@ function renderMatchChip() {
 function runMatch(text) {
   const skills = detectSkills(text);
   applyMatch(skills.length ? { kind: 'jd', result: matchSkills(skills, places, site) } : null);
+  if (match) track('match/run', `${match.result.score}%`);
   renderMatcher(skills.length === 0 && text.trim().length > 0);
 }
 
@@ -680,7 +731,7 @@ function buildCv() {
       'header',
       { class: 'cv-head' },
       photo('cv-photo'),
-      el('div', {}, el('h1', { text: `${site.name} (${site.nickname})` }), el('p', { class: 'cv-role', text: ts(site, 'role') }), el('p', { class: 'cv-contact', text: contact.join('  ·  ') })),
+      el('div', {}, el('h1', { text: `${site.name} (${site.nickname})` }), el('p', { class: 'cv-role', text: ts(site, 'role') }), el('p', { class: 'cv-contact' }, contact.map((c) => el('span', { text: c })))),
     ),
     el('section', {}, el('h2', { text: t('cv.profile') }), el('p', { text: `${ts(site, 'headline')} ${ts(site, 'bio')[0]}` })),
     el(
@@ -691,7 +742,7 @@ function buildCv() {
         el(
           'div',
           { class: 'cv-item' },
-          el('div', { class: 'cv-row' }, el('b', { text: `${tp(p, 'tagline')} · ${title(p)}` }), el('span', { text: [tp(p, 'period'), tp(p, 'workMode')].filter(Boolean).join(' · ') })),
+          el('div', { class: 'cv-row' }, el('b', { text: `${tp(p, 'tagline')}, ${title(p)}` }), el('span', { text: [tp(p, 'period'), tp(p, 'workMode')].filter(Boolean).join(', ') })),
           el('ul', {}, tp(p, 'highlights').map((h) => el('li', { text: h }))),
         ),
       ),
@@ -709,18 +760,40 @@ function buildCv() {
           el(
             'div',
             { class: 'cv-proj' },
-            el('p', { class: 'cv-proj-title' }, el('b', { text: title(p) }), statusLabel(p) ? el('span', { text: ` · ${statusLabel(p)}` }) : null),
+            el('p', { class: 'cv-proj-title' }, el('b', { text: title(p) }), statusLabel(p) ? el('span', { text: ` (${statusLabel(p)})` }) : null),
             el('p', { text: tp(p, 'tagline') }),
-            p.layers?.length ? el('p', { class: 'cv-stack', text: p.layers.flatMap((l) => l.items).slice(0, 7).join(' · ') }) : null,
+            p.layers?.length ? el('p', { class: 'cv-stack', text: p.layers.flatMap((l) => l.items).slice(0, 7).join(', ') }) : null,
           ),
         ),
       ),
     ),
-    site.url && el('footer', { class: 'cv-foot', text: `${t('cv.interactive')}: ${site.url}` }),
+    site.url && el('footer', { class: 'cv-foot', text: `${t('cv.interactive')}: ${cvUrl()}` }),
   );
+  if (cvQr) $('.cv-head', cv).append(el('figure', { class: 'cv-qr' }, cvQr.cloneNode(true), el('figcaption', { text: t('cv.qr') })));
 }
 
-function printCv() {
+// The link printed on the CV, and inside its QR code. A CV printed from a ?to= link keeps it, so the
+// company that scans it lands on its own reserved lot; ?from=cv tells the visit counter it came from paper.
+function cvUrl() {
+  if (!site.url) return '';
+  const u = new URL(site.url);
+  if (company) u.searchParams.set('to', company);
+  u.searchParams.set('lang', getLang());
+  return u.toString();
+}
+
+function makeCvQr() {
+  if (!site.url) return Promise.resolve();
+  const u = new URL(cvUrl());
+  u.searchParams.set('from', 'cv');
+  return qrSvg(u.toString())
+    .then((svg) => (cvQr = svg))
+    .catch(() => (cvQr = null));
+}
+
+async function printCv() {
+  track('cv/print');
+  await makeCvQr(); // the language may have changed since it was made
   buildCv();
   // let the photo decode before the print dialog snapshots the page
   const img = $('#cv .cv-photo');
@@ -790,6 +863,7 @@ function setLang(next, { remember = true } = {}) {
   if (current) renderPanel(byId.get(current));
   if (list.classList.contains('open')) renderList();
   if (matcher.classList.contains('open')) renderMatcher();
+  tour?.refresh();
 }
 
 // ---------- live Bangkok weather and time (Open-Meteo, no key needed) ----------
@@ -841,7 +915,7 @@ function renderWeatherChip() {
   const icon = weatherNow === 'clear' && isNight ? 'weather-night' : WX_ICON[weatherNow];
   const temp = wx?.temp != null && live ? ` ${wx.temp}°C` : '';
   $('.wx-icon', chip).replaceChildren(iconImg(icon));
-  $('.wx-text', chip).textContent = `${t('wx.city')}${temp} · ${bangkokTime()}`;
+  $('.wx-text', chip).textContent = `${t('wx.city')}${temp} ${t('wx.time', { time: bangkokTime() })}`;
   $('.wx-live', chip).textContent = live ? t('wx.live') : t('wx.paused');
   chip.classList.toggle('is-paused', !live);
   chip.title = live ? t('wx.liveTitle') : t('wx.pausedTitle');
@@ -892,6 +966,11 @@ function wireUi() {
     syncWeather();
   });
   $('[data-intro="explore"]').addEventListener('click', hideIntro);
+  $('[data-intro="tour"]').addEventListener('click', () => {
+    hideIntro();
+    startTour();
+  });
+  for (const b of $$('#btn-tour, #btn-tour-m')) b.addEventListener('click', () => (tour?.isOpen() ? tour.stop() : startTour()));
   $('[data-intro="list"]').addEventListener('click', () => {
     hideIntro();
     openList();
@@ -912,7 +991,8 @@ function wireUi() {
       return;
     }
     if (e.key !== 'Escape' || terminal?.isOpen()) return;
-    if (list.classList.contains('open') && !body.classList.contains('no-3d')) closeList();
+    if (tour?.isOpen()) tour.stop();
+    else if (list.classList.contains('open') && !body.classList.contains('no-3d')) closeList();
     else if (intro.classList.contains('open')) hideIntro();
     else if (matcher.classList.contains('open') && (mobile.matches || !current)) closeMatcher();
     else closePanel();
@@ -949,6 +1029,7 @@ function setProgress(f) {
 async function boot() {
   const browserThai = (navigator.languages ?? [navigator.language]).some((l) => l?.toLowerCase().startsWith('th'));
   setLang(params.get('lang') ?? storage.get('lang') ?? (browserThai ? 'th' : 'en'), { remember: false });
+  initAnalytics({ code: site.analytics?.goatcounter, company, from: params.get('from') });
   wireUi();
 
   // Start in the right light straight away from the Bangkok clock; the weather call refines it.
@@ -996,9 +1077,29 @@ async function boot() {
       fireworks: () => world?.launchFireworks(),
       avatar: (file) => world?.setAvatar(file),
       cv: printCv,
+      tour: () => startTour(),
       hasWorld: () => Boolean(world),
     },
   });
+
+  tour = createTour({
+    order: tourOrder,
+    byId,
+    el,
+    t,
+    tp,
+    iconImg,
+    tint,
+    track,
+    company,
+    focus: (id, inset) => world?.focus(id, inset),
+    home: (inset) => world?.home(inset),
+    markPin: (id) => {
+      for (const [pid, pin] of pins) pin.classList.toggle('is-selected', pid === id);
+    },
+    openDetails: (id) => (id === 'next-lot' ? openContact() : select(id)),
+  });
+  if (!world) for (const b of $$('#btn-tour, #btn-tour-m')) b.hidden = true;
 
   // ?role=backend (or frontend, fullstack, security, ai) lights up the most relevant buildings
   if (role) applyMatch({ kind: 'role', role, result: matchSkills(roleSkills(role), places, site) });
@@ -1018,6 +1119,9 @@ async function boot() {
   setProgress(1);
   loader.classList.add('done');
   setTimeout(() => loader.remove(), 600);
+
+  // made while the visitor looks around, so the print dialog never waits on it
+  (window.requestIdleCallback ?? setTimeout)(() => makeCvQr());
 
   const fromHash = decodeURIComponent(location.hash.slice(1));
   if (byId.has(fromHash)) select(fromHash);
