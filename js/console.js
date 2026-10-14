@@ -3,6 +3,7 @@
 
 import { SKYLINE } from './terminal.js';
 import { t, tp } from './i18n.js';
+import { FLAGS } from './ctf.js';
 
 const INK = '#b5727c'; // the rose, a shade darker so it reads on both the light and the dark console
 const S = {
@@ -24,6 +25,7 @@ const MENU = [
   ['town.fireworks()', 'con.c.fireworks'],
   ['town.tour()', 'con.c.tour'],
   ['town.terminal()', 'con.c.terminal'],
+  ['town.ctf()', 'con.c.ctf'],
   ['town.source()', 'con.c.source'],
   ['help', 'con.c.help'],
 ];
@@ -96,6 +98,24 @@ export function consoleEgg({ site, places, company, actions, track }) {
     },
     terminal() {
       actions.terminal();
+    },
+    ctf() {
+      const got = actions.ctf.captured();
+      say([t('con.ctf', { n: got.length, total: actions.ctf.total }), S.ok]);
+      for (const { id } of FLAGS) {
+        const done = got.includes(id);
+        say([`  [${done ? 'x' : ' '}] ${t(`ctf.${id}.name`).padEnd(18)}`, S.cmd], [t(done ? `ctf.${id}.lesson` : `ctf.${id}.hint`), S.dim]);
+      }
+      say(["  town.submit('FLAG{...}')", S.cmd], [`  ${t('con.ctfSubmit')}`, S.dim]);
+    },
+    submit(flag) {
+      // not awaited, so the console prints the answer instead of a pending Promise
+      actions.ctf.submit(flag).then(({ result, id }) => {
+        if (result === 'wrong') return say([t('con.ctfWrong'), S.dim]);
+        if (result === 'again') return say([t('con.ctfAgain', { name: t(`ctf.${id}.name`) }), S.dim]);
+        say([t('con.ctfRight', { name: t(`ctf.${id}.name`), n: actions.ctf.captured().length, total: actions.ctf.total }), S.ok]);
+        say([t(`ctf.${id}.lesson`), S.text]);
+      });
     },
     source() {
       say([t('con.repo', { url: repo }), S.text]);

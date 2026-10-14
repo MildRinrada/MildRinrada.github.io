@@ -1001,6 +1001,7 @@ body.is-touring .toasts {
 
 .ach {
   display: flex;
+  flex-wrap: wrap; /* the flag list takes a row of its own */
   align-items: center;
   gap: 12px;
   padding: 10px 14px 10px 10px;
@@ -1102,6 +1103,44 @@ body.is-touring .toasts {
 .ach-complete p {
   margin-top: 6px;
   line-height: 1.55;
+}
+
+/* the capture-the-flag list: a hint per flag, the lesson once it is captured */
+.ach-flags {
+  display: grid;
+  flex: 1 0 100%;
+  gap: 6px;
+  margin: 2px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+
+.ach-flags li {
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.ach-flags li::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 7px;
+  border: 1.5px solid var(--ink-2);
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+
+.ach-flags li.is-done::before {
+  border-color: #5fae54;
+  background: #5fae54;
+}
+
+.ach-flags b {
+  color: var(--ink);
 }
 
 .ach-unseen {

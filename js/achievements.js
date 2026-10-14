@@ -1,9 +1,10 @@
 // Achievements: small goals that walk a visitor through the whole town (and every project in it).
 // main.js reports what happens as events (the same names analytics uses: open/<id>, tour/finish, match/run,
-// console/<cmd>, plus night, blueprint, terminal, pet:cat, bug/<n>, pumpkin). This module decides what
+// console/<cmd>, plus night, blueprint, terminal, pet:cat, bug/<n>, flag/<id>, pumpkin). This module decides what
 // they unlock, shows a notice, and draws the list in the detail panel.
 
 import { progress } from './progress.js';
+import { FLAGS } from './ctf.js';
 
 export const BUG_COUNT = 5;
 
@@ -18,6 +19,7 @@ const LIST = [
   { id: 'detective', icon: 'search_visual' },
   { id: 'catperson', icon: 'paw' },
   { id: 'qa', icon: 'bug' },
+  { id: 'ctf', icon: 'lock_shield' },
   { id: 'lost', icon: 'location_ripple' },
   { id: 'halloween', icon: 'pumpkin', seasonal: 'halloween' },
 ];
@@ -92,6 +94,11 @@ export function createAchievements({ places, festival, el, t, tp, iconImg, track
       const n = progress.bugs().length;
       if (n >= BUG_COUNT) unlock('qa');
       else notify({ icon: 'bug', eyebrow: t('bug.fixed', { n, total: BUG_COUNT }), text: t('bug.more', { left: BUG_COUNT - n }) });
+    } else if (event.startsWith('flag/')) {
+      const n = progress.flags().length; // ctf.js has already stored it
+      const id = event.slice(5);
+      if (n >= FLAGS.length) unlock('ctf');
+      else notify({ icon: 'lock_shield', eyebrow: t('ctf.captured', { n, total: FLAGS.length }), text: id === 'injection' ? t('ctf.injection.toast') : t(`ctf.${id}.name`) });
     } else if (event.startsWith('console/')) unlock('detective');
     else {
       const id = { night: 'night', blueprint: 'architect', 'tour/finish': 'tourist', 'match/run': 'matchmaker', terminal: 'hacker', 'pet:cat': 'catperson', pumpkin: festival === 'halloween' && 'halloween' }[event];
@@ -102,7 +109,8 @@ export function createAchievements({ places, festival, el, t, tp, iconImg, track
   // ---------- the list, shown in the detail panel ----------
   function item(a) {
     const done = progress.has(a.id);
-    const count = a.id === 'explorer' ? [seenCount(), buildings.length] : a.id === 'qa' ? [progress.bugs().length, BUG_COUNT] : null;
+    const count =
+      a.id === 'explorer' ? [seenCount(), buildings.length] : a.id === 'qa' ? [progress.bugs().length, BUG_COUNT] : a.id === 'ctf' ? [progress.flags().length, FLAGS.length] : null;
     return el(
       'li',
       { class: `ach${done ? ' is-done' : ''}` },
@@ -116,6 +124,19 @@ export function createAchievements({ places, festival, el, t, tp, iconImg, track
         count && !done ? el('span', { class: 'ach-bar', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(count[1]), 'aria-valuenow': String(count[0]) }, el('i', { style: `width: ${(count[0] / count[1]) * 100}%` })) : null,
       ),
       el('span', { class: 'ach-state', text: done ? t('ach.done') : count ? `${count[0]}/${count[1]}` : '' }),
+      a.id === 'ctf' ? flagNotes() : null,
+    );
+  }
+
+  // each flag: the lesson once it's captured, a hint until then
+  function flagNotes() {
+    const got = progress.flags();
+    return el(
+      'ul',
+      { class: 'ach-flags' },
+      FLAGS.map(({ id }) =>
+        el('li', { class: got.includes(id) ? 'is-done' : '' }, el('b', { text: t(`ctf.${id}.name`) }), ' ', got.includes(id) ? t(`ctf.${id}.lesson`) : t(`ctf.${id}.hint`)),
+      ),
     );
   }
 

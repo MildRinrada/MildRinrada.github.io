@@ -1,0 +1,4 @@
+# Hello! Reading robots.txt is good recon.
+# Flag 2 of 4 is waiting where the robots aren't allowed.
+User-agent: *
+Disallow: /staff-only/

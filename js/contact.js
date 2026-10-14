@@ -8,7 +8,7 @@ const COOLDOWN = 60_000; // one message a minute from the same browser
 
 export const contactReady = (cfg) => Boolean(cfg?.serviceId && cfg?.templateId && cfg?.publicKey);
 
-export function contactForm({ cfg, el, t, company, onSent }) {
+export function contactForm({ cfg, el, t, company, onSent, inspect }) {
   if (!contactReady(cfg)) return null;
   const status = el('p', { class: 'cf-status', role: 'status', 'aria-live': 'polite' });
   const field = (name, label, input) => el('label', { class: 'cf-field' }, el('span', { text: label }), input);
@@ -31,6 +31,7 @@ export function contactForm({ cfg, el, t, company, onSent }) {
     const button = form.querySelector('button[type=submit]');
     status.className = 'cf-status';
     if (data.website) return; // a bot
+    inspect?.(`${data.from_name} ${data.company} ${data.message}`); // the CTF's injection flag; the message still goes
     if (!data.from_name.trim() || !/^\S+@\S+\.\S+$/.test(data.reply_to) || !data.message.trim()) {
       status.textContent = t('contact.invalid');
       status.classList.add('is-error');

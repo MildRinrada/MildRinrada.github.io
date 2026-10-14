@@ -112,6 +112,33 @@
       overflow-wrap: anywhere;
     }
 
+    .lost-flag {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      margin-top: 16px;
+    }
+
+    .lost-flag[hidden] {
+      display: none;
+    }
+
+    .lost-flag code {
+      padding: 8px 16px;
+      border: 2px dashed #e0b25a;
+      border-radius: 14px;
+      background: #fff1c9;
+      color: #6b4a00;
+      font: 500 14px/1.5 'IBM Plex Mono', ui-monospace, monospace;
+      overflow-wrap: anywhere;
+      user-select: all;
+    }
+
+    .lost-flag small {
+      color: var(--ink-2);
+      font-size: 13px;
+    }
+
     .lost-actions {
       display: flex;
       flex-wrap: wrap;
@@ -203,6 +230,7 @@
       <h1 data-k="404.title">This building hasn’t been built yet</h1>
       <p class="lost-body" data-k="404.body">This link leads to an empty lot. Nothing stands at this address yet, but every other building in town is open.</p>
       <code class="lost-path"></code>
+      <p class="lost-flag" hidden><code></code><small></small></p>
       <div class="lost-actions">
         <a class="btn btn-primary" href="/" data-k="404.home">Back to town</a>
         <a class="btn btn-ghost" href="/?view=list" data-k="404.list">See every project</a>
@@ -231,15 +259,20 @@
     const ids = new Set(places.filter((p) => !p.hidden).map((p) => p.id));
     const HASH = { about: 'about', me: 'about', cv: 'about', resume: 'about', contact: 'next-lot', achievements: 'achievements', trophies: 'achievements' };
     const QUERY = { th: ['lang', 'th'], en: ['lang', 'en'], list: ['view', 'list'], projects: ['view', 'list'], work: ['view', 'list'], portfolio: ['view', 'list'] };
+    // Addresses scanners try on every site. There's nothing behind them here, so they get a friendly note.
+    const HONEY = /^\/(\.env|\.git|wp-admin|wp-login\.php|wp-content|xmlrpc\.php|phpmyadmin|admin|administrator|login|backup|server-status|config\.php)(\/|$)/i;
+    // robots.txt sends search engines away from here, which is how the CTF's second flag gets found
+    const STAFF = /^\/staff-only(\/|$)/i;
+    const STAFF_FLAG = 'FLAG{robots_txt_is_not_access_control}';
     const go = (q, hash = '') => location.replace(`/${q.toString() ? `?${q}` : ''}${hash ? `#${hash}` : ''}`);
 
     if (ids.has(slug) || HASH[slug]) go(params, ids.has(slug) ? slug : HASH[slug]);
     else if (QUERY[slug]) {
       params.set(...QUERY[slug]);
       go(params);
-    } else show();
+    } else show(STAFF.test(path) ? 'staff' : HONEY.test(path) ? 'honey' : 'lost');
 
-    function show() {
+    function show(kind) {
       let lang = params.get('lang');
       try {
         lang ??= localStorage.getItem('lang');
@@ -250,8 +283,17 @@
       setLangValue(lang);
       document.documentElement.lang = lang === 'th' ? 'th' : 'en';
       document.title = t('404.pageTitle');
+      const [title, body] = { lost: ['404.title', '404.body'], honey: ['404.honeyTitle', '404.honeyBody'], staff: ['404.staffTitle', '404.staffBody'] }[kind];
+      document.querySelector('h1').dataset.k = title;
+      document.querySelector('.lost-body').dataset.k = body;
       for (const node of document.querySelectorAll('[data-k]')) node.textContent = t(node.dataset.k);
       document.querySelector('.lost-path').textContent = path;
+      if (kind === 'staff') {
+        const box = document.querySelector('.lost-flag');
+        box.querySelector('code').textContent = STAFF_FLAG;
+        box.querySelector('small').textContent = t('404.flagHint');
+        box.hidden = false;
+      }
 
       // keep the company, role and language on the way back into town
       const keep = new URLSearchParams();

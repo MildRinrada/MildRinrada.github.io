@@ -10,9 +10,10 @@ import { initAnalytics, track as count } from './analytics.js';
 import { createAchievements } from './achievements.js';
 import { festivalNow } from './festivals.js';
 import { progress as saved } from './progress.js';
+import { createCtf } from './ctf.js';
 import { qrSvg } from './qr.js';
 import { consoleEgg } from './console.js';
-import { t, tp, ts, skillLabel, getLang, setLangValue, SAMPLE_JD } from './i18n.js';
+import { t, tIn, tp, ts, skillLabel, getLang, setLangValue, SAMPLE_JD } from './i18n.js';
 import { detectSkills, matchSkills, roleSkills, ROLES } from './skills.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -57,6 +58,7 @@ let match = null; // { kind: 'jd' | 'role', role?, result }
 let tour = null;
 let cvQr = null; // the CV's QR code, made ahead so Ctrl+P can print it straight away
 let awards = null; // achievements.js
+let ctf = null; // ctf.js
 const emailjs = site.contact?.emailjs;
 
 // Small DOM helper: el('p', { class: 'x', text: 'hi' }, child, [children]). Falsy children are skipped.
@@ -436,7 +438,7 @@ function lotParts(p) {
   return [
     head(p.icon, company ? t('lot.eyebrowReserved') : t('lot.eyebrow'), company ? t('lot.reserved', { company }) : t('lot.title')),
     el('p', { class: 'p-summary', text: company ? t('lot.bodyReserved') : t('lot.body') }),
-    contactForm({ cfg: emailjs, el, t, company, onSent: () => track('contact/sent') }),
+    contactForm({ cfg: emailjs, el, t, company, onSent: () => track('contact/sent'), inspect: (text) => ctf.inspect(text) }),
     contactButtons(),
   ];
 }
@@ -661,6 +663,7 @@ function renderMatchChip() {
 }
 
 function runMatch(text) {
+  ctf.inspect(text);
   const skills = detectSkills(text);
   applyMatch(skills.length ? { kind: 'jd', result: matchSkills(skills, places, site) } : null);
   if (match) track('match/run', `${match.result.score}%`);
@@ -1071,6 +1074,8 @@ async function boot() {
       select('achievements');
     },
   });
+  ctf = createCtf({ onCapture: (id) => track(`flag/${id}`) });
+  ctf.inspect(params.get('to')); // ?to=<script>… is sanitised before it's shown, and earns a flag
   initAnalytics({ code: site.analytics?.goatcounter, company, from: params.get('from') });
   wireUi();
 
@@ -1130,6 +1135,15 @@ async function boot() {
     awards: () => awards.lines().map((a) => ({ ...a, name: t(`ach.${a.id}.name`) })),
     resetAwards: () => awards.reset(),
     bugsFixed: () => saved.bugs(),
+    ctf: {
+      submit: (text) => ctf.submit(text),
+      inspect: (text) => ctf.inspect(text),
+      captured: () => ctf.captured(),
+      total: ctf.total,
+      flag: ctf.injectionFlag,
+      // the terminal always speaks English
+      text: (key) => tIn('en', key),
+    },
   };
   terminal = createTerminal({ places, site, company, actions });
 

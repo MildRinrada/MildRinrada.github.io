@@ -1,10 +1,10 @@
-// What a visitor has found in town: unlocked achievements, fixed bugs and the buildings they opened.
+// What a visitor has found in town: unlocked achievements, fixed bugs, captured flags and the buildings they opened.
 // It lives in this browser only (localStorage), so it's a convenience: with storage blocked, nothing breaks,
 // the visitor just starts from zero next time. The 404 page writes here too, so it has no DOM code.
 
 const KEY = 'mildrinrada-town.progress';
 
-const empty = () => ({ done: {}, bugs: [], seen: [] });
+const empty = () => ({ done: {}, bugs: [], seen: [], flags: [] });
 
 function read() {
   try {
@@ -14,6 +14,7 @@ function read() {
       done: v.done && typeof v.done === 'object' ? v.done : {},
       bugs: Array.isArray(v.bugs) ? v.bugs.filter(Number.isInteger) : [],
       seen: Array.isArray(v.seen) ? v.seen.filter((x) => typeof x === 'string') : [],
+      flags: Array.isArray(v.flags) ? v.flags.filter((x) => typeof x === 'string') : [],
     };
   } catch {
     return empty();
@@ -51,6 +52,13 @@ export const progress = {
   see(id) {
     if (state.seen.includes(id)) return false;
     state.seen.push(id);
+    save();
+    return true;
+  },
+  flags: () => [...state.flags],
+  captureFlag(id) {
+    if (state.flags.includes(id)) return false;
+    state.flags.push(id);
     save();
     return true;
   },

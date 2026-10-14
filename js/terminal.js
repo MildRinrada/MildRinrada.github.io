@@ -1,6 +1,7 @@
 // The secret terminal. Press ` (backtick) or the >_ button. Everything printed uses textContent.
 
 import { bugSpots } from './scenery.js';
+import { FLAGS } from './ctf.js';
 
 const AVATARS = ['female-a', 'female-b', 'female-c', 'female-d', 'female-e', 'female-f', 'male-a', 'male-b', 'male-c', 'male-d', 'male-e', 'male-f'];
 export const SKYLINE = String.raw`
@@ -68,6 +69,8 @@ export function createTerminal({ places, site, company, actions }) {
         ['tour', 'a one-minute guided tour'],
         ['achievements [reset]', 'what you have found so far'],
         ['bugs', 'a hint for the bug hunt'],
+        ['ctf', 'capture the flag: 4 flags hidden in the site'],
+        ['submit <flag>', 'hand in a flag you found'],
         ['sudo hire mild', ':)'],
         ['clear | exit', ''],
       ].forEach(([c, d]) => line(`  ${c.padEnd(40)}${d}`));
@@ -197,6 +200,29 @@ export function createTerminal({ places, site, company, actions }) {
       line(`Hint: ${left[Math.floor(Math.random() * left.length)].hint}`);
       line('Click a bug to fix it. Blueprint mode makes them easier to spot.', 'ln-dim');
     },
+    ctf() {
+      const got = actions.ctf.captured();
+      const say = actions.ctf.text;
+      line(`Capture the flag ${got.length}/${actions.ctf.total}`, 'ln-head');
+      for (const { id } of FLAGS) {
+        const done = got.includes(id);
+        line(`  [${done ? 'x' : ' '}] ${say(`ctf.${id}.name`)}`, done ? 'ln-ok' : '');
+        line(`      ${say(done ? `ctf.${id}.lesson` : `ctf.${id}.hint`)}`, 'ln-dim');
+      }
+      line('Found one? submit FLAG{...}', 'ln-dim');
+    },
+    async submit(...args) {
+      const guess = args.join(' ');
+      if (!guess) return line('usage: submit FLAG{...}', 'ln-err');
+      const { result, id } = await actions.ctf.submit(guess);
+      if (result === 'wrong') return line('submit: not a flag. Keep looking.', 'ln-err');
+      const say = actions.ctf.text;
+      if (result === 'again') return line(`Already captured: ${say(`ctf.${id}.name`)}.`, 'ln-dim');
+      const n = actions.ctf.captured().length;
+      line(`Correct! ${say(`ctf.${id}.name`)} (${n}/${actions.ctf.total})`, 'ln-ok');
+      line(say(`ctf.${id}.lesson`), 'ln-dim');
+      if (n === actions.ctf.total) line(say('ctf.allDone'), 'ln-head');
+    },
     cv() {
       line('Opening the print dialog…', 'ln-ok');
       setTimeout(() => actions.cv(), 300);
@@ -253,6 +279,11 @@ export function createTerminal({ places, site, company, actions }) {
     if (!text) return;
     history.push(text);
     hIndex = history.length;
+    // the CTF's injection flag: whatever was typed is printed with textContent, so it stays text
+    if (actions.ctf?.inspect(text)) {
+      line('Payload caught. This terminal prints with textContent, so it stays plain text.', 'ln-ok');
+      line(`${actions.ctf.flag}  ${actions.ctf.text('ctf.injection.lesson')}`, 'ln-dim');
+    }
     const [cmd, ...args] = text.split(/\s+/);
     const fn = commands[cmd.toLowerCase()];
     if (!fn) return line(`${cmd}: command not found. Type 'help'.`, 'ln-err');
