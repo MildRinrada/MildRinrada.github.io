@@ -351,6 +351,7 @@ function linkButtons(p) {
   if (p.links?.live) links.push(el('a', { class: 'btn btn-primary', href: p.links.live, target: '_blank', rel: 'noopener', text: t('btn.live') }));
   if (p.links?.design) links.push(el('a', { class: `btn ${links.length ? 'btn-ghost' : 'btn-primary'}`, href: p.links.design, target: '_blank', rel: 'noopener', text: t('btn.design') }));
   if (p.links?.repo) links.push(el('a', { class: 'btn btn-ghost', href: p.links.repo, target: '_blank', rel: 'noopener', text: t('btn.code') }));
+  if (p.links?.map) links.push(el('a', { class: 'btn btn-ghost', href: p.links.map, target: '_blank', rel: 'noopener', text: t('btn.map') }));
   return links.length ? el('div', { class: 'p-actions' }, links) : null;
 }
 

@@ -15,6 +15,7 @@ assets/projects/
   thai-emotion-detection/    01.png  02.png  03.png
   laptop-recommendation/     01.png  02.png  03.png
   kpop-mart/                 01.png  02.png  03.png  04.png  05.png
+  mildtutor/                 01.png  02.png  03.png  04.png
 assets/profile/
   photo.png          ← your photo (square, about 800 × 800)
 ```

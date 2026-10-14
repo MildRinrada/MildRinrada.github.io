@@ -152,7 +152,9 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
   const onPavement = (z) => (z > -2.5 && z < -0.5) || (z > 0.5 && z < 2.5);
   for (const t of tiles) jobs.push(placeAt(t));
   for (const b of backdrop) jobs.push(placeAt(b, scene, 0.02));
-  for (const g of greenery) jobs.push(placeAt(g, scene, onPavement(g.pos[1]) ? 0.02 : 0));
+  // A tree never grows through a building: skip any that stand on a place's lot.
+  const onLot = ([x, z]) => places.some((p) => Math.abs(p.at.pos[0] - x) < 0.75 && Math.abs(p.at.pos[1] - z) < 0.65);
+  for (const g of greenery) if (!onLot(g.pos)) jobs.push(placeAt(g, scene, onPavement(g.pos[1]) ? 0.02 : 0));
 
   const lampLights = [];
   const lampGlows = [];

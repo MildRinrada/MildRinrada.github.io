@@ -172,6 +172,7 @@ export const places = [
       { kind: 'backend', items: ['PHP', 'Python', 'Node.js', 'NestJS'] },
       { kind: 'infra', items: ['n8n', 'OWASP ZAP'] },
     ],
+    links: { map: 'https://maps.app.goo.gl/SbG2STgVaaFLfuqV7' },
   },
   {
     id: 'securesight',
@@ -198,7 +199,7 @@ export const places = [
       { kind: 'infra', items: ['Docker Compose', 'Nginx'] },
       { kind: 'data', items: ['MySQL'] },
     ],
-    links: { live: '', repo: '' },
+    links: { live: '', repo: 'https://github.com/MildRinrada/SecureSight' },
     media: gallery('securesight', 3),
   },
   {
@@ -316,7 +317,7 @@ export const places = [
       { kind: 'infra', items: ['Docker'] },
       { kind: 'data', items: ['PostgreSQL', 'Redis'] },
     ],
-    links: { live: '', repo: '' },
+    links: { live: '', repo: 'https://github.com/MildRinrada/Kawaii-Bake-TH' },
     media: gallery('kawaiibake', 4),
   },
   {
@@ -402,7 +403,7 @@ export const places = [
       { kind: 'frontend', items: ['HTML', 'CSS'] },
       { kind: 'backend', items: ['Python', 'Flask', 'Naive Bayes', 'attacut'] },
     ],
-    links: { live: '', repo: '' },
+    links: { live: '', repo: 'https://github.com/MildRinrada/Thai-Sentence-Emotion-Detection-Website' },
     media: gallery('thai-emotion-detection', 3),
   },
   {
@@ -459,5 +460,29 @@ export const places = [
       design: 'https://embed.figma.com/design/f1noWusGb4P6HAkWi5XBJZ?node-id=1075-10278&embed-host=share',
     },
     media: gallery('kpop-mart', 5),
+  },
+
+  // ---------------- the park, in front of Park Street ----------------
+  {
+    id: 'mildtutor',
+    kind: 'project',
+    icon: 'book_star',
+    title: 'MildTutor',
+    tagline: 'Online course app, designed in Figma',
+    category: 'App UI design · Solo project',
+    status: null,
+    at: { pos: [-2.15, 4.12] },
+    model: { file: 'suburban/building-type-l.glb', scale: 0.95 },
+    summary: 'The design of a mobile app for taking courses online, made on my own in Figma from start to finish.',
+    highlights: [
+      'A solo project: every screen designed in Figma by me.',
+      // TODO: add what the app covers (e.g. browsing courses, a lesson player, progress, payment) and any user research.
+    ],
+    layers: [{ kind: 'frontend', items: ['Figma', 'App UI design', 'Prototype'] }],
+    // Opens in Figma's read-only viewer, so visitors can look but not edit.
+    links: {
+      design: 'https://embed.figma.com/design/UFuH2B4y2ronYcEJdoSWWO?node-id=0-1&embed-host=share',
+    },
+    media: gallery('mildtutor', 4),
   },
 ];
