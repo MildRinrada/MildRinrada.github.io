@@ -309,7 +309,7 @@ export const places = [
       { kind: 'data', items: ['PostgreSQL', 'Redis'] },
     ],
     links: { live: '', repo: '' },
-    media: gallery('kawaiibake', 3),
+    media: gallery('kawaiibake', 4),
   },
   {
     id: 'happy-paws-clinic',
