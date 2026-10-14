@@ -46,6 +46,17 @@ const company = (params.get('to') ?? '')
   .trim()
   .slice(0, 40);
 const role = ROLES[params.get('role')] ? params.get('role') : null;
+// &start= on a company link: now, days of notice (30), or a date (2026-12 or 2026-12-01). It lives in the link
+// rather than in data/town.js, so the public source never says you're looking.
+const start = (() => {
+  const v = (params.get('start') ?? '').trim().toLowerCase();
+  if (v === 'now') return { kind: 'now' };
+  if (/^\d{1,3}$/.test(v)) return { kind: 'days', n: Number(v) };
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(v);
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, m[3] ? +m[3] : 1));
+  return d.getUTCMonth() === +m[2] - 1 ? { kind: 'date', d, day: Boolean(m[3]) } : null; // 2026-02-31 is no date
+})();
 // Halloween and friends (festivals.js): the town dresses up on those dates, or any day with ?festival=halloween
 const festival = festivalNow(params);
 
@@ -455,10 +466,19 @@ function placeParts(p) {
     progress(p),
     p.media?.images?.length ? gallery(p) : null,
     el('p', { class: 'p-summary', text: tp(p, 'summary') }),
+    behind(p),
     p.highlights?.length ? section(p.kind === 'work' ? t('section.whatIDo') : t('section.highlights'), el('ul', { class: 'p-list' }, tp(p, 'highlights').map((h) => el('li', { text: h })))) : null,
     p.layers?.length ? section(t('section.stack'), stack(p.layers)) : null,
     linkButtons(p),
   ];
+}
+
+// Behind the build (story in data/town.js): the hard part, the choice and why, and how it turned out
+function behind(p) {
+  const s = tp(p, 'story');
+  if (!s) return null;
+  const beats = ['problem', 'choice', 'result'].filter((k) => s[k]);
+  return section(t('section.story'), el('dl', { class: 'p-story' }, beats.flatMap((k) => [el('dt', { text: t(`story.${k}`) }), el('dd', { text: s[k] })])));
 }
 
 function renderPanel(p) {
@@ -612,9 +632,63 @@ function closeList() {
 }
 
 // ---------- intro ----------
+function startText() {
+  if (!start) return null;
+  if (start.kind === 'now') return t('fit.startNow');
+  if (start.kind === 'days') return t('fit.startDays', { n: start.n });
+  const opts = { timeZone: 'UTC', year: 'numeric', month: 'long', ...(start.day && { day: 'numeric' }) };
+  return t('fit.startFrom', { date: new Intl.DateTimeFormat(getLang() === 'th' ? 'th-TH' : 'en-GB', opts).format(start.d) });
+}
+
+// The 30-second version for a ?to= link: why I fit the role, the closest work, when and where, and how to reach me.
+// Built from the role (site.pitch), never from the company name, so nothing in the source says where I applied.
+function fitCard() {
+  const r = role ?? 'fullstack';
+  const pitch = site.pitch?.[r];
+  if (!pitch) return null;
+  const points = ts(site, 'pitch')?.[r]?.points ?? pitch.points;
+  const picks = pitch.picks.map((id) => byId.get(id)).filter(Boolean);
+  const based = ts(site, 'based');
+  const facts = [startText(), based && t('fit.based', { place: based }), ...(site.workModes ?? []).map((m) => t(`mode.${m}`))].filter(Boolean);
+  const reach = contactReady(emailjs)
+    ? el('button', { class: 'btn btn-primary', type: 'button', onclick: () => (hideIntro(), openContact()), text: t('contact.button') })
+    : site.email && el('a', { class: 'btn btn-primary', href: `mailto:${site.email}`, text: t('btn.email') });
+  const cv = resumeOk
+    ? el('a', { class: 'btn btn-ghost', href: site.resume, download: true, text: t('btn.resume'), onclick: () => track('resume/download') })
+    : el('button', { class: 'btn btn-ghost', type: 'button', onclick: printCv, text: t('btn.printCv') });
+  return el(
+    'div',
+    { class: 'fit' },
+    el('p', { class: 'fit-head', text: t('fit.why', { role: t(`role.${r}`) }) }),
+    el('ul', { class: 'fit-points' }, points.map((x) => el('li', { text: x }))),
+    el('p', { class: 'fit-head', text: t('fit.picks') }),
+    el(
+      'div',
+      { class: 'fit-picks' },
+      picks.map((p) => el('button', { class: 'fit-pick', type: 'button', style: `--tint: ${tint(p)}`, onclick: () => select(p.id) }, iconImg(p.icon), el('span', { text: tp(p, 'short') ?? title(p) }))),
+    ),
+    facts.length ? el('div', { class: 'fit-facts' }, facts.map((f) => el('span', { class: 'chip', text: f }))) : null,
+    el('div', { class: 'fit-actions' }, reach, cv),
+  );
+}
+
 function renderIntro() {
   $('#intro-title').textContent = company ? t('intro.titleCompany', { company }) : t('intro.title');
   $('.intro-sub').textContent = t('intro.sub');
+  const fit = company ? fitCard() : null;
+  $('.intro-card').classList.toggle('intro-fit', Boolean(fit));
+  $('.intro .fit')?.remove();
+  if (fit) {
+    $('.intro-body').replaceChildren(t('intro.bodyFit'));
+    $('.intro-body').after(fit);
+  } else {
+    renderIntroBody();
+  }
+  $('.intro-fest')?.remove();
+  if (festival) $('#intro-title').before(el('p', { class: 'intro-fest' }, iconImg(FESTIVAL_ICON[festival]), t(`fest.${festival}`)));
+}
+
+function renderIntroBody() {
   const parts = [
     company ? t('intro.bodyCompany1') : t('intro.body1'),
     el('b', { text: t('nav.blueprint') }),
@@ -622,8 +696,6 @@ function renderIntro() {
     role ? el('span', { class: 'intro-role', text: ` ${t('intro.bodyRole', { role: t(`role.${role}`) })}` }) : null,
   ];
   $('.intro-body').replaceChildren(...parts.filter(Boolean)); // replaceChildren would print null as text
-  $('.intro-fest')?.remove();
-  if (festival) $('#intro-title').before(el('p', { class: 'intro-fest' }, iconImg(FESTIVAL_ICON[festival]), t(`fest.${festival}`)));
 }
 
 const FESTIVAL_ICON = { halloween: 'pumpkin' };
@@ -1030,6 +1102,7 @@ function wireUi() {
     fetch(site.resume, { method: 'HEAD' })
       .then((r) => {
         resumeOk = r.ok;
+        if (resumeOk && intro.classList.contains('open')) renderIntro(); // the company card's résumé button
       })
       .catch(() => {});
   }

@@ -23,6 +23,15 @@ export const site = {
   // prints the CV instead, and the page doesn't ask for a file that isn't there (DevTools shows that as a red 404).
   resume: '',
 
+  // Links sent with ?to=Company open on a one-card summary: why you fit the role, three projects, when and where
+  // you can work, and the résumé and contact buttons. Empty fields stay hidden.
+  // based: where you work from, e.g. 'Bangkok' (Thai: add based to site in data/town.th.js).
+  // workModes: any of 'onsite', 'hybrid', 'remote'.
+  // There is deliberately no start date here: the source is public, and a date would say you're looking.
+  // Put it in the link you send instead: &start=now, &start=30 (days of notice) or &start=2026-12-01.
+  based: '', // TODO
+  workModes: [], // TODO
+
   // Visit counts with GoatCounter (free, no cookies). Sign up at https://www.goatcounter.com and put your
   // site code here, e.g. 'mildrinrada' for mildrinrada.goatcounter.com. Empty = off. See js/analytics.js.
   // Keep your own visits out by opening the site once with ?notrack=1.
@@ -52,6 +61,52 @@ export const site = {
       { label: 'Data & infra', items: ['PostgreSQL', 'MySQL', 'Redis', 'Docker', 'Nginx', 'Git', 'GitHub'] },
       { label: 'Tools', items: ['n8n', 'OWASP ZAP', 'Herd', 'XAMPP', 'Adobe Photoshop'] },
     ],
+  },
+
+  // The ?to= card: three points and three projects for each role in the link (&role=frontend, backend, fullstack,
+  // security or ai; fullstack when there's none). No company is named anywhere, so the source says nothing about
+  // where you've applied. Thai points: site.pitch in data/town.th.js.
+  pitch: {
+    fullstack: {
+      points: [
+        'Ships whole features end to end: Next.js and React on top, APIs in Python, Go, C# or Node.js, PostgreSQL underneath.',
+        'Builds large systems and keeps them tested: 585 tests in Customer Service, 766 in Happy Paws.',
+        'Full-Stack Developer at Bookdose since July 2025, working with stakeholders on web apps for government agencies.',
+      ],
+      picks: ['customer-service', 'happy-paws-clinic', 'kawaiibake'],
+    },
+    backend: {
+      points: [
+        'APIs that stay organised as they grow: about 400 routes in Customer Service, and 145 endpoints behind strict service and repository layers in KawaiiBake.',
+        'Correctness enforced by the database: an exclusion constraint and Idempotency-Keys stop double bookings in Happy Paws, proven by concurrent tests.',
+        'At home in Python (FastAPI, Django), Go (Gin), C# (ASP.NET Core) and Node.js (NestJS), with PostgreSQL, Redis and Docker.',
+      ],
+      picks: ['happy-paws-clinic', 'customer-service', 'kawaiibake'],
+    },
+    frontend: {
+      points: [
+        'Next.js and TypeScript in four full-stack projects, with API types generated from the backend so a contract change shows up as a type error (KawaiiBake).',
+        'Designs as well as builds: MildTutor on my own and K-Pop Mart with a university team, both in Figma.',
+        'This town is a frontend sample too: three.js without a framework, a list view when 3D can’t run, reduced-motion support, Thai and English.',
+      ],
+      picks: ['kawaiibake', 'happy-paws-clinic', 'mildtutor'],
+    },
+    security: {
+      points: [
+        'Built SecureSight, a passive web scanner that ranks findings by CVSS score and likelihood instead of just listing them.',
+        'Security by default: a database per organisation, passkeys, two-step sign-in and a CSP nonce on every page (Customer Service); httpOnly sessions with refresh-token rotation (Happy Paws).',
+        'Security testing with OWASP ZAP as part of delivery at Bookdose.',
+      ],
+      picks: ['securesight', 'customer-service', 'happy-paws-clinic'],
+    },
+    ai: {
+      points: [
+        'Thai NLP: an emotion classifier (Naive Bayes with attacut word segmentation), and a local WangchanBERTa service for character-consistency checks in FictionThai.',
+        'LLM features with guard rails: each organisation brings its own key, and AI replies cite knowledge-base articles or hand the chat to a person (Customer Service).',
+        'AI that assists rather than replaces: in FictionThai the writer accepts or rejects every suggestion, and no text leaves the machine.',
+      ],
+      picks: ['customer-service', 'fictionthai', 'thai-emotion-detection'],
+    },
   },
 };
 
@@ -139,6 +194,15 @@ export const places = [
       { kind: 'backend', items: ['Go', 'Gin', 'FastAPI ML services (optional)'] },
       { kind: 'data', items: ['PostgreSQL', 'Redis'] },
     ],
+    // Behind the build (written from the project's docs and code): the hard part, the choice and why, and the outcome.
+    story: {
+      problem:
+        'One story has to work as prose and as chat-style fiction, and the writer must be free to switch at any time without losing a word. The AI has to stay a helper: no sentence changes unless the writer says so, and no manuscript leaves the machine.',
+      choice:
+        'Prose, chat messages and side notes live in their own tables, and the format is just a setting that picks which one readers see. One column holding either prose or serialised chat was rejected, because it turns every format switch into a rewrite. The AI only returns suggestions: a rule engine for Thai spelling, plus an optional local WangchanBERTa service for character consistency. An accepted suggestion goes through the normal edit path, so it lands in the revision history.',
+      result:
+        'Switching format is a single UPDATE that touches no chapter, with a round-trip test to prove it, and there is no conversion step to get wrong. There is deliberately no “accept all” for style edits: one click should never rewrite thirty sentences. Still to do: restoring old revisions, and moving files from local disk to S3.',
+    },
     links: { live: '', repo: '' },
     media: gallery('fictionthai', 4),
   },
@@ -157,7 +221,7 @@ export const places = [
     summary:
       'A Thai customer service platform where many organisations share one system, each with its own database. Teams answer web chat, LINE, email, Facebook and Instagram from one inbox, work tickets against SLAs, and lean on a knowledge base, automations, reports and AI. Customers get a support page, guest chat, a chat button for their own website, and one account that works with every organisation.',
     highlights: [
-      'About 400 API routes across 31 backend modules, covered by 585 automated tests.',
+      'About 400 API routes across 29 backend modules, covered by 585 automated tests.',
       'Inbox and tickets: every channel in one place, internal notes and @mentions, six ticket states, SLAs with business hours and holidays, auto-assignment, escalation, macros, CSAT surveys and auto-close.',
       'AI that each organisation connects with its own key: reply drafts that cite knowledge-base articles, rewriting, tag and priority suggestions, a chatbot on web, LINE and email, an assistant that can act on tickets, summaries, sentiment and translation.',
       'Reports that forecast ticket volume and the staff needed each day, plus team-spirit touches: an inbox weather forecast, a kudos wall, monthly recaps and achievements.',
@@ -170,6 +234,15 @@ export const places = [
       { kind: 'infra', items: ['LINE Messaging API', 'Facebook & Instagram', 'IMAP / SMTP'] },
       { kind: 'data', items: ['SQLite, one per organisation'] },
     ],
+    // Behind the build (written from the project's docs and code): the hard part, the choice and why, and the outcome.
+    story: {
+      problem:
+        'Many organisations share one system, and their tickets, customers and chat history must never meet. With shared tables, one forgotten WHERE tenant_id = ? is all it takes for one organisation to see another’s data.',
+      choice:
+        'One SQLite database per organisation, plus a control database that holds only accounts and sessions. No query can see across organisations in the first place, so a missing condition can’t turn into a leak. Organisation ids must be exactly 32 hex characters, and a request whose organisation doesn’t match its session gets a 409, so a second tab can’t write to the wrong one.',
+      result:
+        'Isolation holds by design rather than by discipline, and the system runs on any machine with no database server to set up. The cost is scale: SQLite limits concurrent writes and the API runs as a single worker, so the next step is moving sessions, rate limits and realtime events onto a broker such as Redis.',
+    },
     links: { live: '', repo: '' },
     // The demo video plays first. Overwrite demo.mp4 with your own video and keep the name.
     // Pictures stay as they are: 01.png is still the cover in the list view and the CV.
@@ -217,7 +290,7 @@ export const places = [
     at: { pos: [1.8, -1.3] },
     model: { file: 'commercial/building-m.glb', scale: 1 },
     summary:
-      'A passive web security assessment platform. It evaluates websites through normal HTTP requests and responses, never attacking or modifying the target, and helps teams prioritise fixes by risk and business impact rather than isolated findings.',
+      'A passive web security assessment platform. It evaluates websites through normal HTTP requests and responses, never attacking or modifying the target, and helps teams prioritise fixes by risk and likelihood rather than as isolated findings.',
     highlights: [
       'Analyses security headers, cookies, CORS, TLS configuration, redirects and web technologies.',
       'Explains each finding in the context of the overall security posture, not just what is missing.',
@@ -231,6 +304,15 @@ export const places = [
       { kind: 'infra', items: ['Docker Compose', 'Nginx'] },
       { kind: 'data', items: ['MySQL'] },
     ],
+    // Behind the build (written from the project's docs and code): the hard part, the choice and why, and the outcome.
+    story: {
+      problem:
+        'A scanner that calls every missing header “High” is noise, and people stop reading it. The real question is what to fix first, and the scan itself must never look like an attack on someone else’s site.',
+      choice:
+        'Severity and priority are kept apart on purpose. Each finding gets a CVSS 3.1 score held inside its severity band, then likelihood moves its priority up or down one step. Protections actually seen on the site lower the likelihood, but one aggravating sign cancels that, and a confirmed weakness caps the overall grade, so no site can buy its way out of cleartext transport by setting six headers.',
+      result:
+        'Ranked results from 50 checks in 9 modules, with one catalogue that keeps hardening advice from being reported as a vulnerability. The traffic stays polite: evenly paced requests instead of bursts, robots.txt respected, GET only, and every module reads one shared crawl. Next: scans run in a single process and lose their progress on a restart, so they belong in a job queue.',
+    },
     links: { live: '', repo: 'https://github.com/MildRinrada/SecureSight' },
     media: gallery('securesight', 3),
   },
@@ -380,6 +462,15 @@ export const places = [
       { kind: 'infra', items: ['Docker Compose', 'xUnit', 'Testcontainers'] },
       { kind: 'data', items: ['PostgreSQL 17'] },
     ],
+    // Behind the build (written from the project's docs and code): the hard part, the choice and why, and the outcome.
+    story: {
+      problem:
+        'Two people booking the last free slot at the same moment. Under READ COMMITTED both requests see an empty calendar, so no check in application code can stop the double booking. And a customer who taps Confirm twice on a weak signal shouldn’t end up with two appointments.',
+      choice:
+        'Let PostgreSQL decide. An exclusion constraint on vet, branch and time range is the final guard (back-to-back visits still fit), and the API turns a clash into a plain “slot unavailable”. A slot is held for 10 minutes while the phone OTP is checked, and the hold expires on its own, with no cleanup job. An Idempotency-Key makes a repeated Confirm run only once.',
+      result:
+        'A test fires four bookings at one slot at once against a real PostgreSQL, and only one succeeds. What I’d change: the live queue board keeps its listeners in one server’s memory, so running more than one server needs a shared message backplane first.',
+    },
     links: { live: '', repo: 'https://github.com/MildRinrada/Happy-Paws-Clinic-Demo' },
     media: gallery('happy-paws-clinic', 3),
   },

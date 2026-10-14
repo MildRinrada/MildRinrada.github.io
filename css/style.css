@@ -1354,6 +1354,31 @@ body.fest-halloween .sky-night {
   color: var(--rose);
 }
 
+/* Behind the build: three short beats on a card in the building's own pastel */
+.p-story {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--tint) 30%, var(--surface));
+}
+
+.p-story dt {
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.p-story dd {
+  margin: 3px 0 0;
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
 .stack {
   display: grid;
   gap: 8px;
@@ -1934,7 +1959,10 @@ body.is-blueprint .card-about {
 .intro-card {
   position: relative;
   width: min(520px, 100%);
-  overflow: hidden;
+  max-height: calc(100dvh - 32px); /* the company card is taller: scroll inside it on short screens */
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   padding: 34px 32px 28px;
   border-radius: 36px;
   background:
@@ -2025,6 +2053,128 @@ body.is-blueprint .intro-card {
   font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* ?to= links: the 30-second version inside the welcome card */
+.intro-card.intro-fit {
+  width: min(600px, 100%);
+  padding-top: 28px;
+}
+
+.intro-fit .intro-who {
+  margin-bottom: 10px;
+}
+
+.intro-fit .intro-photo {
+  width: 60px;
+  height: 60px;
+}
+
+.intro-fit h1 {
+  font-size: clamp(28px, 5vw, 38px);
+}
+
+.intro-fit .intro-body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.intro-fit .intro-actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 18px;
+}
+
+/* explore and the tour side by side, so the card fits a laptop screen without scrolling */
+.intro-fit .intro-actions [data-intro="list"] {
+  grid-column: 1 / -1;
+}
+
+.intro-fit .intro-actions .btn-primary {
+  min-height: 48px;
+}
+
+.fit {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: var(--surface-2);
+  text-align: left;
+}
+
+.fit-head {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fit-points {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.fit-points li + li {
+  margin-top: 6px;
+}
+
+.fit-points li::marker {
+  color: var(--rose);
+}
+
+.fit-picks,
+.fit-facts,
+.fit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fit-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 5px 14px 5px 5px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.fit-pick:hover {
+  transform: translateY(-1px);
+}
+
+.fit-pick .ic {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  border-radius: 50%;
+  background: var(--tint);
+}
+
+.fit-facts {
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.fit-actions {
+  margin-top: 14px;
+}
+
+.fit-actions .btn {
+  flex: 1 1 160px;
 }
 
 /* the tour is the second big choice, a cream pill under the main button */
@@ -2997,6 +3147,14 @@ body.is-touring .hud-bottom {
 
   .intro-card {
     padding: 28px 22px 22px;
+  }
+
+  .intro-fit .intro-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .fit {
+    padding: 14px 14px;
   }
 
   .card-about {
