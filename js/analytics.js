@@ -4,8 +4,12 @@
 // What gets recorded (paths as they appear in the GoatCounter dashboard):
 //   page view   /                     or  /to/<company>       (the ?to= link a company was sent)
 //   events      <company>/open/<id>   which building they opened ("direct" when there was no ?to=)
-//               <company>/tour/start · tour/finish · cv/print · resume/download · match/run · contact/sent
+//               <company>/tour/start, tour/finish, cv/print, resume/download, match/run, contact/sent
+//               <company>/console/<command>   someone typed hire() or town.<command>() in DevTools
+//               <company>/achievement/<id>    an achievement unlocked (achievement/all when every one is done)
+//               <company>/bug/<n>, pumpkin    a bug fixed in the bug hunt, a pumpkin tapped at Halloween
 //               <company>/link/<id>/<kind>   a click to a live site, repo, Figma file or map
+//   404 page    /404/<address>        a link that led nowhere
 //
 // To keep your own visits out: open the site once with ?notrack=1 (and ?notrack=0 to undo).
 
@@ -26,7 +30,8 @@ function readNoTrack() {
   }
 }
 
-export function initAnalytics({ code, company, from }) {
+// path: count this page under its own name instead (the 404 page passes /404/<the address that was asked for>)
+export function initAnalytics({ code, company, from, path: own }) {
   const skip = readNoTrack();
   if (!code || skip || local()) return;
   who = company || 'direct';
@@ -40,7 +45,7 @@ export function initAnalytics({ code, company, from }) {
     s.onerror = () => resolve(); // blocked by an ad blocker: carry on without counts
   });
   document.head.append(s);
-  const path = company ? `/to/${company}${from ? ` (${from})` : ''}` : from ? `/ (${from})` : '/';
+  const path = own ?? (company ? `/to/${company}${from ? ` (${from})` : ''}` : from ? `/ (${from})` : '/');
   send({ path, title: document.title });
 }
 

@@ -9,7 +9,8 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { BASE, tiles, backdrop, greenery, lamps, walkLoop, catZone } from './scenery.js';
+import { BASE, tiles, backdrop, greenery, lamps, walkLoop, catZone, bugSpots, halloween } from './scenery.js';
+import { makeBug, makePumpkin, makeBat, makeWitchHat } from './props.js';
 
 const ROOT = 'assets/models/';
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -26,11 +27,19 @@ const NIGHT = { sky: new THREE.Color('#5a5590'), ground: new THREE.Color('#2a223
 const GHOST = { day: new THREE.Color('#2f6fe8'), night: new THREE.Color('#8cc2ff'), blueprint: new THREE.Color('#ffffff') };
 const WEATHER_DIM = { clear: 1, cloudy: 0.8, rain: 0.62, storm: 0.5 };
 const FIREWORK_COLORS = ['#f6a19b', '#ffe681', '#9ccbec', '#a9d79a', '#f7b6c2', '#c9b6e6', '#ffffff'];
+// what changes when the town dresses up for a festival (festivals.js picks the day)
+const FESTIVE = {
+  halloween: { windows: '#ff7a2e', fireworks: ['#ff9a3c', '#ffcf6b', '#b48cf0', '#8fd18a', '#ffffff'], cat: '#4a4352' },
+};
+const PUMPKIN_FACE = { day: new THREE.Color('#4a2614'), night: new THREE.Color('#ffcf6e') };
+const BUG_SPARKS = ['#8fd18a', '#c8f0c0', '#ffffff'];
+const CANDY = ['#ff9a3c', '#f7b6c2', '#b48cf0', '#ffe681', '#9ccbec'];
 
 const VIEW_DIR = new THREE.Vector3(1, 0.92, 1.08).normalize();
 const CHARACTER_HEIGHT = 0.3;
 
-export async function createWorld({ container, places, avatar, avatarLabel, makePin, makeLayerTag, onSelect, onHover, onProgress, onFlash }) {
+export async function createWorld({ container, places, avatar, avatarLabel, makePin, makeLayerTag, onSelect, onHover, onProgress, onFlash, festival = null, bugsFixed = [], onBug, onPet, onPumpkin }) {
+  const fest = FESTIVE[festival] ?? null;
   // WebGLRenderer throws when WebGL is unavailable; main.js catches that and falls back to the list.
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -115,7 +124,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       if (mask) {
         o.material = o.material.clone();
         o.material.emissiveMap = mask;
-        o.material.emissive = new THREE.Color(0xffffff);
+        o.material.emissive = new THREE.Color(fest?.windows ?? 0xffffff);
         o.material.emissiveIntensity = 0;
         glowMats.push({ material: o.material, k: glow });
       }
@@ -150,7 +159,8 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
   // ---------- scenery ----------
   const jobs = [];
   const onPavement = (z) => (z > -2.5 && z < -0.5) || (z > 0.5 && z < 2.5);
-  for (const t of tiles) jobs.push(placeAt(t));
+  const ground = []; // streets and pavements, for setting small props down on them
+  for (const t of tiles) jobs.push(placeAt(t).then((obj) => ground.push(obj)));
   for (const b of backdrop) jobs.push(placeAt(b, scene, 0.02));
   // A tree never grows through a building: skip any that stand on a place's lot.
   const onLot = ([x, z]) => places.some((p) => Math.abs(p.at.pos[0] - x) < 0.75 && Math.abs(p.at.pos[1] - z) < 0.65);
@@ -158,10 +168,12 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
 
   const lampLights = [];
   const lampGlows = [];
+  const lampObjs = [];
   const glowTex = makeGlowSprite();
   for (const l of lamps) {
     jobs.push(
       placeAt(l).then((obj) => {
+        lampObjs.push(obj);
         const head = new THREE.Vector3(...l.head);
         if (l.light) {
           const light = new THREE.PointLight('#ffcf8a', 0, 2.8, 1.6);
@@ -200,6 +212,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       const model = await instance(p.model.file, { scale: p.model.scale ?? 1, glow: p.status === 'live' ? (p.glow ?? 1) : 0 });
       const box = new THREE.Box3().setFromObject(model);
       group.add(model);
+      entry.box = box; // in the group's own space
       entry.top = box.max.y;
       await Promise.all(
         (p.props ?? []).map(async (pr) => {
@@ -444,6 +457,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       const actor = await makeActor(avatar, CHARACTER_HEIGHT);
       const root = makeRoot('about', [0.26, CHARACTER_HEIGHT + 0.04, 0.26], { className: 'walker-tag', text: avatarLabel });
       root.add(actor.model);
+      dress(actor);
       walker = { actor, root, dist: rand(0, loopLen), yaw: 0, targetYaw: 0, state: 'walk', timer: 0, held: false };
       pointAt(walker.dist, root.position);
       play(actor, 'walk');
@@ -459,6 +473,13 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       const actor = await makeActor('pets/animal-cat.glb', 0.14);
       const root = makeRoot('pet:cat', [0.22, 0.18, 0.22], { className: 'pet-bubble', text: '' });
       root.add(actor.model);
+      if (fest?.cat) {
+        actor.model.traverse((o) => {
+          if (!o.isMesh) return;
+          o.material = o.material.clone();
+          o.material.color.set(fest.cat); // a black cat for Halloween
+        });
+      }
       root.position.set(rand(catZone.minX, catZone.maxX), 0.02, catZone.minZ);
       cat = { actor, root, yaw: 0, target: null, timer: rand(1, 3), react: 0 };
       play(actor, 'idle');
@@ -467,6 +488,236 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
 
   await Promise.all(jobs.map((j) => j.catch((err) => console.warn('Scenery item failed', err))));
   if (walker && dog) dog.root.position.copy(walker.root.position).add(new THREE.Vector3(-0.3, 0, 0));
+
+  // ---------- setting small things down on roofs, walls, pavements and lamps ----------
+  scene.updateMatrixWorld(true); // nothing has been drawn yet, so positions aren't in the world matrices
+  const probe = new THREE.Raycaster();
+  probe.camera = camera; // sprites (lamp glows) need one to be tested at all
+  const DOWN = new THREE.Vector3(0, -1, 0);
+  const solids = (root) => {
+    const out = [];
+    root.traverse((o) => {
+      if (o.isMesh && !o.isLineSegments2 && !o.userData.noPick && o.material?.visible !== false) out.push(o);
+    });
+    return out;
+  };
+  const hit = (objs, from, dir = DOWN) => {
+    probe.set(from, dir);
+    return probe.intersectObjects(objs, false)[0]?.point ?? null;
+  };
+  const groundSolids = () => ground.flatMap(solids);
+  // the highest surface at (x, z): a roof, a lamp, a pavement, or the grass at y = 0
+  const surfaceAt = (x, z, objs = groundSolids()) => hit(objs, new THREE.Vector3(x, 12, z))?.y ?? 0;
+  const facingCamera = Math.atan2(VIEW_DIR.x, VIEW_DIR.z);
+
+  // ---------- the bug hunt: ladybugs hidden around town, click one to fix it ----------
+  const bugs = [];
+  function placeBug(spot, n) {
+    const { root, body } = makeBug();
+    root.traverse((o) => (o.userData.noBlueprint = true)); // stay red in blueprint mode, which makes them easier to spot
+    let parent = scene;
+    if (spot.roof || spot.wall) {
+      const e = entries.get(spot.on);
+      if (!e?.box) return;
+      parent = e.group;
+      e.group.updateMatrixWorld(true);
+      const b = e.box;
+      const objs = solids(e.group);
+      if (spot.roof) {
+        const local = new THREE.Vector3(lerp(b.min.x, b.max.x, spot.roof[0]), b.max.y + 1, lerp(b.min.z, b.max.z, spot.roof[1]));
+        const p = hit(objs, e.group.localToWorld(local.clone()));
+        if (!p) return;
+        root.position.copy(e.group.worldToLocal(p));
+      } else {
+        // the +x wall: aim at it from outside, then lie flat against it
+        const local = new THREE.Vector3(b.max.x + 1, lerp(b.min.y, b.max.y, spot.wall[1]), lerp(b.min.z, b.max.z, spot.wall[0]));
+        const dir = new THREE.Vector3(-1, 0, 0).transformDirection(e.group.matrixWorld);
+        const p = hit(objs, e.group.localToWorld(local.clone()), dir);
+        if (!p) return;
+        root.position.copy(e.group.worldToLocal(p));
+        root.rotation.z = -Math.PI / 2;
+      }
+    } else {
+      const [x, z] = spot.at;
+      root.position.set(x, surfaceAt(x, z, spot.lamp ? lampObjs.flatMap(solids) : groundSolids()), z);
+    }
+    root.rotation.y = rand(0, Math.PI * 2) * (spot.wall ? 0 : 1);
+    root.userData.placeId = `bug:${n}`;
+    // a generous invisible target: the bug itself is only a few pixels wide
+    const target = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), new THREE.MeshBasicMaterial({ visible: false }));
+    target.userData.noBlueprint = true;
+    root.add(target);
+    pickables.push(target);
+    parent.add(root);
+    bugs.push({ n, root, body, target, phase: rand(0, 6), fixing: 0 });
+  }
+  bugSpots.forEach((spot, n) => {
+    if (!bugsFixed.includes(n)) placeBug(spot, n);
+  });
+
+  function fixBug(id) {
+    const b = bugs.find((x) => `bug:${x.n}` === id);
+    if (!b || b.fixing) return;
+    b.fixing = 0.001;
+    pickables.splice(pickables.indexOf(b.target), 1);
+    burst(b.root.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.05, 0)), BUG_SPARKS);
+    onBug?.(b.n);
+  }
+
+  function updateBugs(dt, t) {
+    for (let i = bugs.length - 1; i >= 0; i--) {
+      const b = bugs[i];
+      if (b.fixing) {
+        b.fixing += dt / 0.45;
+        const k = Math.min(1, b.fixing);
+        b.root.scale.setScalar(k < 0.3 ? 1 + k * 1.6 : Math.max(0.001, 1.48 * (1 - (k - 0.3) / 0.7)));
+        if (k >= 1) {
+          b.root.removeFromParent();
+          bugs.splice(i, 1);
+        }
+        continue;
+      }
+      if (reduceMotion) continue;
+      // wander in a small circle, nose first, with a little scuttle
+      const a = t * 0.55 + b.phase;
+      b.body.position.set(Math.cos(a) * 0.03, Math.abs(Math.sin(t * 14 + b.phase)) * 0.002, Math.sin(a) * 0.03);
+      b.body.rotation.y = -a;
+    }
+  }
+
+  // ---------- small bursts: sparkles for a fixed bug, sweets from a pumpkin ----------
+  const bursts = [];
+  function burst(at, colors, n = 28) {
+    const pos = new Float32Array(n * 3);
+    const col = new Float32Array(n * 3);
+    const vel = [];
+    for (let i = 0; i < n; i++) {
+      pos.set([at.x, at.y, at.z], i * 3);
+      const c = new THREE.Color(colors[i % colors.length]);
+      col.set([c.r, c.g, c.b], i * 3);
+      vel.push(new THREE.Vector3().randomDirection().multiplyScalar(rand(0.35, 0.8)).add(new THREE.Vector3(0, 0.7, 0)));
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 6 * renderer.getPixelRatio(), sizeAttenuation: false, map: glowTex, vertexColors: true, transparent: true, depthWrite: false }));
+    pts.frustumCulled = false;
+    scene.add(pts);
+    bursts.push({ pts, vel, life: 0.9 });
+  }
+  function updateBursts(dt) {
+    for (let i = bursts.length - 1; i >= 0; i--) {
+      const b = bursts[i];
+      const pos = b.pts.geometry.attributes.position;
+      b.life -= dt;
+      for (let j = 0; j < pos.count; j++) {
+        const v = b.vel[j];
+        v.y -= 2.2 * dt;
+        pos.setXYZ(j, pos.getX(j) + v.x * dt, pos.getY(j) + v.y * dt, pos.getZ(j) + v.z * dt);
+      }
+      pos.needsUpdate = true;
+      b.pts.material.opacity = clamp(b.life / 0.5, 0, 1);
+      if (b.life <= 0) {
+        scene.remove(b.pts);
+        b.pts.geometry.dispose();
+        b.pts.material.dispose();
+        bursts.splice(i, 1);
+      }
+    }
+  }
+
+  // ---------- Halloween: pumpkins that glow at night, bats round the tallest tower ----------
+  const festive = []; // hidden in blueprint mode
+  const pumpkins = [];
+  const bats = [];
+  function addPumpkin(parent, at, size) {
+    const p = makePumpkin(size);
+    p.root.position.copy(at);
+    p.root.rotation.y = facingCamera - (parent.rotation?.y ?? 0) + rand(-0.35, 0.35);
+    p.root.traverse((o) => (o.userData.noBlueprint = true));
+    p.root.userData.placeId = `pumpkin:${pumpkins.length}`;
+    pickables.push(p.body);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#ffb347', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.setScalar(0.34);
+    glow.position.set(0, p.height * 0.5, 0.05);
+    glow.userData.noBlueprint = true;
+    p.root.add(glow);
+    lampGlows.push(glow); // lights up with the street lamps: at dusk and in heavy rain
+    parent.add(p.root);
+    festive.push(p.root);
+    pumpkins.push({ ...p, bounce: 0 });
+  }
+  function dressForHalloween() {
+    for (const { on, at } of halloween.roofs) {
+      const e = entries.get(on);
+      if (!e?.box) continue;
+      e.group.updateMatrixWorld(true);
+      const b = e.box;
+      const local = new THREE.Vector3(lerp(b.min.x, b.max.x, at[0]), b.max.y + 1, lerp(b.min.z, b.max.z, at[1]));
+      const p = hit(solids(e.group), e.group.localToWorld(local.clone()));
+      if (p) addPumpkin(e.group, e.group.worldToLocal(p), 1);
+    }
+    for (const { at: [x, z], size = 1.35 } of halloween.ground) addPumpkin(scene, new THREE.Vector3(x, surfaceAt(x, z), z), size);
+    const lot = places.find((p) => p.lot);
+    const lotEntry = lot && entries.get(lot.id);
+    if (lotEntry) for (const { at: [x, z], size } of halloween.patch) addPumpkin(lotEntry.group, new THREE.Vector3(x, 0.025, z), size);
+
+    const tower = entries.get(halloween.batsAround);
+    if (tower) {
+      const c = tower.group.position.clone().setY(tower.top);
+      for (let i = 0; i < 7; i++) {
+        const bat = makeBat();
+        bat.root.scale.setScalar(2.2);
+        bat.root.traverse((o) => (o.userData.noBlueprint = true));
+        scene.add(bat.root);
+        festive.push(bat.root);
+        bats.push({ ...bat, c, r: rand(0.55, 1.05), y: rand(0.25, 0.85), w: rand(0.45, 0.85) * (i % 3 ? 1 : -1), phase: rand(0, Math.PI * 2) });
+      }
+    }
+  }
+  if (festival === 'halloween') dressForHalloween();
+
+  function poke(id) {
+    const p = pumpkins[Number(id.split(':')[1])];
+    if (!p || p.bounce > 0) return;
+    p.bounce = 1;
+    burst(p.root.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, p.height, 0)), CANDY, 34);
+    onPumpkin?.();
+  }
+
+  function updateFestive(dt, t) {
+    const k = Math.max(night, (1 - dim) * 0.8);
+    for (const p of pumpkins) {
+      p.faceMat.color.lerpColors(PUMPKIN_FACE.day, PUMPKIN_FACE.night, k);
+      if (p.bounce > 0) {
+        p.bounce = Math.max(0, p.bounce - dt * 1.8);
+        const s = Math.sin((1 - p.bounce) * Math.PI * 3) * p.bounce * 0.25;
+        p.body.scale.set(1 + s * 0.6, 1 - s, 1 + s * 0.6);
+      }
+    }
+    for (const b of bats) {
+      const a = (reduceMotion ? 0 : t * b.w) + b.phase; // with reduced motion they hang where they are
+      const pos = new THREE.Vector3(b.c.x + Math.cos(a) * b.r, b.c.y + b.y + Math.sin(a * 2.3) * 0.06, b.c.z + Math.sin(a) * b.r);
+      const ahead = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a)).multiplyScalar(Math.sign(b.w));
+      b.root.position.copy(pos);
+      b.root.lookAt(pos.add(ahead));
+      const flap = reduceMotion ? 0.3 : Math.sin(t * 15 + b.phase) * 0.75;
+      b.wings[0].rotation.z = -flap;
+      b.wings[1].rotation.z = flap;
+    }
+  }
+
+  // Halloween puts a witch hat on whoever walks around town
+  function dress(actor) {
+    if (festival !== 'halloween') return;
+    const head = actor.model.getObjectByName('head');
+    if (!head) return;
+    const hat = makeWitchHat();
+    hat.position.set(0, 0.33, 0);
+    hat.rotation.z = 0.12;
+    hat.traverse((o) => (o.userData.noBlueprint = true));
+    head.add(hat);
+  }
 
   const turn = (cur, want, dt, speed = 8) => {
     const delta = Math.atan2(Math.sin(want - cur), Math.cos(want - cur));
@@ -566,8 +817,9 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
       cat.react = 2.8;
       cat.target = null;
       play(cat.actor, 'dance');
-      bubble(cat.root, 'Meow~');
+      bubble(cat.root, festival === 'halloween' ? 'Boo~' : 'Meow~');
     }
+    onPet?.(id);
     if (id === 'pet:dog' && dog) {
       dog.react = 2.4;
       play(dog.actor, 'gesture-positive');
@@ -581,6 +833,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     walker.actor.mixer.stopAllAction();
     walker.root.remove(walker.actor.model);
     walker.root.add(next.model);
+    dress(next);
     walker.actor = next;
     play(next, walker.state === 'walk' && !walker.held ? 'walk' : 'idle');
   }
@@ -633,6 +886,7 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     }
     for (const e of entries.values()) if (e.layerGroup) e.layerGroup.visible = on;
     for (const g of lampGlows) g.visible = !on;
+    for (const o of festive) o.visible = !on;
     sun.castShadow = !on;
     rain.visible = !on && (weather === 'rain' || weather === 'storm');
     updateGhost();
@@ -700,8 +954,9 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     const pos = new Float32Array(n * 3);
     const col = new Float32Array(n * 3);
     const vel = [];
-    const c1 = new THREE.Color(FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)]);
-    const c2 = new THREE.Color(FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)]);
+    const palette = fest?.fireworks ?? FIREWORK_COLORS;
+    const c1 = new THREE.Color(palette[Math.floor(Math.random() * palette.length)]);
+    const c2 = new THREE.Color(palette[Math.floor(Math.random() * palette.length)]);
     const start = new THREE.Vector3(rand(-4.5, 4.5), 0.3, rand(-3, 0.5));
     const peak = start.clone().setY(rand(3.2, 4.6));
     for (let i = 0; i < n; i++) {
@@ -789,6 +1044,8 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     if (moved >= 6) return;
     const id = pick(e);
     if (id?.startsWith('pet:')) petReact(id);
+    else if (id?.startsWith('bug:')) fixBug(id);
+    else if (id?.startsWith('pumpkin:')) poke(id);
     else onSelect?.(id);
   });
   canvas.addEventListener('pointermove', (e) => {
@@ -994,6 +1251,9 @@ export async function createWorld({ container, places, avatar, avatarLabel, make
     updateDog(dt);
     updateCat(dt);
     updateFireworks(dt);
+    updateBugs(dt, t);
+    updateBursts(dt);
+    updateFestive(dt, t);
 
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);

@@ -19,7 +19,9 @@ export const site = {
   url: 'https://mildrinrada.github.io/', // printed on the CV as the interactive version
   email: '', // TODO: public contact email. The email button stays hidden while this is empty.
   linkedin: '', // TODO
-  resume: 'assets/resume.pdf', // Drop the PDF here and the Résumé button appears on its own.
+  // Put your PDF at assets/resume.pdf and set this to 'assets/resume.pdf'. While it's empty the Résumé button
+  // prints the CV instead, and the page doesn't ask for a file that isn't there (DevTools shows that as a red 404).
+  resume: '',
 
   // Visit counts with GoatCounter (free, no cookies). Sign up at https://www.goatcounter.com and put your
   // site code here, e.g. 'mildrinrada' for mildrinrada.goatcounter.com. Empty = off. See js/analytics.js.

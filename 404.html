@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en" class="waiting">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lost in MildRinrada Town</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#c3d7e9">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Cdefs%3E%3ClinearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%271%27 y2=%271%27%3E%3Cstop offset=%270%27 stop-color=%27%23ff8a6b%27/%3E%3Cstop offset=%271%27 stop-color=%27%23ff5277%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx=%2732%27 cy=%2732%27 r=%2732%27 fill=%27url(%23g)%27/%3E%3Ctext x=%2732%27 y=%2741%27 font-family=%27Arial,sans-serif%27 font-weight=%27700%27 font-size=%2726%27 text-anchor=%27middle%27 fill=%27white%27%3EMR%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- GitHub Pages serves this page for any address that doesn't exist, so every link here starts at the site root. -->
+  <style>
+    :root {
+      --sky: linear-gradient(180deg, #c3d7e9 0%, #d9e6f1 34%, #eef0ef 62%, #f8f0e6 100%);
+      --ink: #2a2421;
+      --ink-soft: #6f6966;
+      --ink-2: #8c8480;
+      --surface: #ffffff;
+      --rose: #c9979b;
+      --rose-deep: #b7848a;
+      --cream: #f7ebdd;
+      --cream-ink: #4f3f33;
+      --shadow: 0 14px 36px rgba(110, 80, 70, 0.12), 0 2px 6px rgba(110, 80, 70, 0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --sky: linear-gradient(180deg, #1f2140 0%, #34315a 52%, #57486e 100%);
+        --ink: #f4eef2;
+        --ink-soft: #d9d0de;
+        --ink-2: #b6adbf;
+        --surface: #2f2b3a;
+        --rose: #d9a3aa;
+        --rose-deep: #e6b5bb;
+        --cream: #3f3746;
+        --cream-ink: #f1e4d6;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      min-height: 100svh;
+      padding: 28px 16px;
+      background: var(--sky);
+      color: var(--ink);
+      font: 400 16px/1.6 'Anuphan', 'Noto Sans Thai', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    .waiting .lost {
+      visibility: hidden; /* until the script knows whether this address is a short link */
+    }
+
+    .lost {
+      width: min(500px, 100%);
+      text-align: center;
+    }
+
+    .lost-art {
+      display: block;
+      width: min(380px, 86%);
+      height: auto;
+      margin: 0 auto;
+      filter: drop-shadow(0 18px 26px rgba(110, 80, 70, 0.16));
+    }
+
+    .lost-card {
+      margin-top: 4px;
+      padding: 26px 24px 24px;
+      border-radius: 32px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      color: var(--ink-2);
+      font: 500 15px/1.2 'Cormorant Garamond', Georgia, serif;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-top: 8px;
+      color: var(--ink-soft);
+      font-size: clamp(26px, 6vw, 34px);
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .lost-body {
+      margin-top: 12px;
+      color: var(--ink-2);
+    }
+
+    .lost-path {
+      display: inline-block;
+      max-width: 100%;
+      margin-top: 10px;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: var(--cream);
+      color: var(--cream-ink);
+      font: 13px/1.5 'IBM Plex Mono', ui-monospace, monospace;
+      overflow-wrap: anywhere;
+    }
+
+    .lost-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 22px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1;
+      text-decoration: none;
+      transition: transform 0.15s ease, background 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid var(--rose-deep);
+      outline-offset: 3px;
+    }
+
+    .btn-primary {
+      background: var(--rose);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(183, 132, 138, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--rose-deep);
+    }
+
+    .btn-ghost {
+      background: var(--cream);
+      color: var(--cream-ink);
+    }
+
+    .lost-ach {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+      padding: 6px 16px 6px 6px;
+      border-radius: 999px;
+      background: #fff1c9;
+      color: #6b4a00;
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+
+    .lost-ach[hidden] {
+      display: none;
+    }
+
+    .lost-ach img {
+      width: 32px;
+      height: 32px;
+      padding: 5px;
+      border-radius: 50% 50% 50% 18%;
+      background: #ffffff;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn {
+        transition: none;
+      }
+    }
+  </style>
+  <script>
+    // never leave the page blank: show it after a moment even if the module below can't load
+    setTimeout(() => document.documentElement.classList.remove('waiting'), 1500);
+  </script>
+</head>
+<body>
+  <main class="lost">
+    <img class="lost-art" src="/assets/404.png" alt="" width="440" height="352">
+    <div class="lost-card">
+      <p class="brand">MildRinrada Town</p>
+      <h1 data-k="404.title">This building hasn’t been built yet</h1>
+      <p class="lost-body" data-k="404.body">This link leads to an empty lot. Nothing stands at this address yet, but every other building in town is open.</p>
+      <code class="lost-path"></code>
+      <div class="lost-actions">
+        <a class="btn btn-primary" href="/" data-k="404.home">Back to town</a>
+        <a class="btn btn-ghost" href="/?view=list" data-k="404.list">See every project</a>
+      </div>
+      <p class="lost-ach" hidden><img src="/assets/icons/location_ripple.svg" alt=""><span></span></p>
+    </div>
+  </main>
+
+  <script type="module">
+    import { site, places } from '/data/town.js';
+    import { t, setLangValue } from '/js/i18n.js';
+    import { progress } from '/js/progress.js';
+    import { initAnalytics } from '/js/analytics.js';
+
+    const params = new URLSearchParams(location.search);
+    let path = location.pathname;
+    try {
+      path = decodeURIComponent(path);
+    } catch {
+      /* a malformed address: show it as it came */
+    }
+    const slug = path.replace(/\/+$/, '').split('/').pop().toLowerCase().replace(/\.html?$/, '');
+
+    // Short links: /securesight opens that building, /th the Thai version, /cv the About me panel, and so on.
+    // Anything a ?to= link carried (the company, the role, the language) comes along.
+    const ids = new Set(places.filter((p) => !p.hidden).map((p) => p.id));
+    const HASH = { about: 'about', me: 'about', cv: 'about', resume: 'about', contact: 'next-lot', achievements: 'achievements', trophies: 'achievements' };
+    const QUERY = { th: ['lang', 'th'], en: ['lang', 'en'], list: ['view', 'list'], projects: ['view', 'list'], work: ['view', 'list'], portfolio: ['view', 'list'] };
+    const go = (q, hash = '') => location.replace(`/${q.toString() ? `?${q}` : ''}${hash ? `#${hash}` : ''}`);
+
+    if (ids.has(slug) || HASH[slug]) go(params, ids.has(slug) ? slug : HASH[slug]);
+    else if (QUERY[slug]) {
+      params.set(...QUERY[slug]);
+      go(params);
+    } else show();
+
+    function show() {
+      let lang = params.get('lang');
+      try {
+        lang ??= localStorage.getItem('lang');
+      } catch {
+        /* storage blocked */
+      }
+      lang ??= (navigator.languages ?? [navigator.language]).some((l) => l?.toLowerCase().startsWith('th')) ? 'th' : 'en';
+      setLangValue(lang);
+      document.documentElement.lang = lang === 'th' ? 'th' : 'en';
+      document.title = t('404.pageTitle');
+      for (const node of document.querySelectorAll('[data-k]')) node.textContent = t(node.dataset.k);
+      document.querySelector('.lost-path').textContent = path;
+
+      // keep the company, role and language on the way back into town
+      const keep = new URLSearchParams();
+      for (const k of ['to', 'role', 'lang']) if (params.get(k)) keep.set(k, params.get(k));
+      document.querySelector('[data-k="404.home"]').href = `/${keep.toString() ? `?${keep}` : ''}`;
+      keep.set('view', 'list');
+      document.querySelector('[data-k="404.list"]').href = `/?${keep}`;
+
+      // finding this page is one of the town's achievements
+      if (progress.unlock('lost')) {
+        const ach = document.querySelector('.lost-ach');
+        ach.querySelector('span').textContent = `${t('ach.unlocked')}: ${t('ach.lost.name')}`;
+        ach.hidden = false;
+      }
+
+      initAnalytics({ code: site.analytics?.goatcounter, company: params.get('to') ?? '', path: `/404${path}` });
+      document.documentElement.classList.remove('waiting');
+    }
+  </script>
+</body>
+</html>

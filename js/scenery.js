@@ -63,3 +63,39 @@ export const walkLoop = [
 
 // The cat wanders the pavement in front of Happy Paws and its neighbours.
 export const catZone = { minX: 0.3, maxX: 3.7, minZ: PARK_STREET_Z - 0.62, maxZ: PARK_STREET_Z - 0.48 };
+
+// The bug hunt: five ladybugs, each in a spot you only find by looking around.
+// roof / wall: a place's id plus fractions of its footprint (wall is the +x side: [along z, up]).
+// at: a world [x, z] on the ground, or on a street lamp when lamp is set. hint: what the terminal's bugs command says.
+export const bugSpots = [
+  { on: 'fictionthai', roof: [0.3, 0.35], hint: 'Something is crawling about on the roof of a building still under construction.' },
+  { on: 'securesight', wall: [0.3, 0.62], hint: 'Even the security tower has one. Have a look at its walls.' },
+  { at: [-1.5, 3.22], lamp: true, hint: 'One likes the light. Check the street lamps on Park Street.' },
+  { at: [-4.13, 2.12], hint: 'One is hiding behind a tree on Park Street.' },
+  { at: [0.55, 4.25], hint: 'One is having a picnic in the park.' },
+];
+
+// Halloween dressing: pumpkins on roofs (fractions of the footprint), along the pavements (world [x, z]),
+// a little patch on the vacant lot (lot-local [x, z]), and the tower the bats circle.
+export const halloween = {
+  roofs: [
+    { on: 'customer-service', at: [0.75, 0.75] },
+    { on: 'nk-digital-library', at: [0.7, 0.7] },
+    { on: 'line-movie-bot', at: [0.72, 0.72] },
+    { on: 'kmitl', at: [0.7, 0.75] },
+  ],
+  ground: [
+    { at: [-2.0, 2.28] },
+    { at: [1.62, 2.28], size: 1.5 },
+    { at: [4.78, 2.28] },
+    { at: [-0.9, -0.64] },
+    { at: [0.9, -0.64], size: 1.1 },
+    { at: [1.45, 4.15], size: 2.2 }, // the giant one in the park
+  ],
+  patch: [
+    { at: [-0.68, 0.22], size: 1.25 },
+    { at: [0.68, 0.28], size: 1.0 },
+    { at: [0.66, -0.25], size: 0.8 },
+  ],
+  batsAround: 'bookdose',
+};

@@ -6,8 +6,12 @@ import { site, places as allPlaces, tour as tourOrder } from '../data/town.js';
 import { createTerminal } from './terminal.js';
 import { createTour } from './tour.js';
 import { contactForm, contactReady } from './contact.js';
-import { initAnalytics, track } from './analytics.js';
+import { initAnalytics, track as count } from './analytics.js';
+import { createAchievements } from './achievements.js';
+import { festivalNow } from './festivals.js';
+import { progress as saved } from './progress.js';
 import { qrSvg } from './qr.js';
+import { consoleEgg } from './console.js';
 import { t, tp, ts, skillLabel, getLang, setLangValue, SAMPLE_JD } from './i18n.js';
 import { detectSkills, matchSkills, roleSkills, ROLES } from './skills.js';
 
@@ -25,7 +29,8 @@ const matcher = $('#matcher');
 const places = allPlaces.filter((p) => !p.hidden);
 
 const ABOUT = { id: 'about', kind: 'about', icon: 'person', title: `${site.name} (${site.nickname})` };
-const byId = new Map([...places.map((p) => [p.id, p]), [ABOUT.id, ABOUT]]);
+const AWARDS = { id: 'achievements', kind: 'achievements', icon: 'trophy', title: 'Achievements' };
+const byId = new Map([...places.map((p) => [p.id, p]), [ABOUT.id, ABOUT], [AWARDS.id, AWARDS]]);
 const pins = new Map(); // id → button
 const layerTags = []; // { el, kind }
 const LAYER_ORDER = ['frontend', 'backend', 'infra', 'data'];
@@ -39,6 +44,8 @@ const company = (params.get('to') ?? '')
   .trim()
   .slice(0, 40);
 const role = ROLES[params.get('role')] ? params.get('role') : null;
+// Halloween and friends (festivals.js): the town dresses up on those dates, or any day with ?festival=halloween
+const festival = festivalNow(params);
 
 let world = null;
 let terminal = null;
@@ -49,6 +56,7 @@ let resumeOk = false;
 let match = null; // { kind: 'jd' | 'role', role?, result }
 let tour = null;
 let cvQr = null; // the CV's QR code, made ahead so Ctrl+P can print it straight away
+let awards = null; // achievements.js
 const emailjs = site.contact?.emailjs;
 
 // Small DOM helper: el('p', { class: 'x', text: 'hi' }, child, [children]). Falsy children are skipped.
@@ -84,6 +92,12 @@ const storage = {
     }
   },
 };
+
+// Everything worth counting goes through here: achievements hear about it, and so does analytics when it's on.
+function track(name, title = '') {
+  awards?.note(name);
+  count(name, title);
+}
 
 const pct = (p) => (p.progress ? Math.round((p.progress.value / p.progress.total) * 100) : null);
 const title = (p) => tp(p, 'title');
@@ -445,7 +459,8 @@ function placeParts(p) {
 }
 
 function renderPanel(p) {
-  const parts = p.kind === 'about' ? aboutParts() : p.kind === 'lot' ? lotParts(p) : placeParts(p);
+  const parts =
+    p.kind === 'about' ? aboutParts() : p.kind === 'lot' ? lotParts(p) : p.kind === 'achievements' ? awards.parts({ head, contact: contactButtons }) : placeParts(p);
   panel.style.setProperty('--tint', tint(p));
   $('.panel-body', panel).replaceChildren(...parts.filter(Boolean)); // replaceChildren would print null as text
 }
@@ -458,6 +473,7 @@ function panelInset() {
 function select(id) {
   const p = byId.get(id);
   if (!p) return;
+  hideIntro(); // opened from the terminal or the console while the welcome card is still up
   if (tour?.isOpen()) tour.stop({ keepView: true });
   if (id !== current) track(`open/${id}`, title(p));
   if (mobile.matches) closeMatcher();
@@ -603,7 +619,11 @@ function renderIntro() {
     role ? el('span', { class: 'intro-role', text: ` ${t('intro.bodyRole', { role: t(`role.${role}`) })}` }) : null,
   ];
   $('.intro-body').replaceChildren(...parts.filter(Boolean)); // replaceChildren would print null as text
+  $('.intro-fest')?.remove();
+  if (festival) $('#intro-title').before(el('p', { class: 'intro-fest' }, iconImg(FESTIVAL_ICON[festival]), t(`fest.${festival}`)));
 }
+
+const FESTIVAL_ICON = { halloween: 'pumpkin' };
 
 function showIntro() {
   $('.intro-who').prepend(photo('intro-photo'));
@@ -807,6 +827,7 @@ async function printCv() {
 function setNight(on, { instant = false, source = 'user' } = {}) {
   if (source === 'user') setLive(false);
   isNight = on;
+  if (on) awards?.note('night');
   body.classList.toggle('is-night', on);
   $('#btn-time').setAttribute('aria-pressed', String(on));
   world?.setNight(on, instant);
@@ -816,6 +837,7 @@ function setNight(on, { instant = false, source = 'user' } = {}) {
 
 function setBlueprint(on) {
   isBlueprint = on;
+  if (on) awards?.note('blueprint');
   body.classList.toggle('is-blueprint', on);
   $('#btn-blueprint').setAttribute('aria-pressed', String(on));
   world?.setBlueprint(on);
@@ -859,6 +881,7 @@ function setLang(next, { remember = true } = {}) {
   refreshPins();
   renderWeatherChip();
   renderMatchChip();
+  awards?.renderHud();
   if (intro.classList.contains('open')) renderIntro();
   if (current) renderPanel(byId.get(current));
   if (list.classList.contains('open')) renderList();
@@ -943,6 +966,7 @@ function wireUi() {
     a.remove();
   });
   $('#match-chip').addEventListener('click', () => applyMatch(null));
+  $('#btn-awards').addEventListener('click', () => (current === 'achievements' ? closePanel() : select('achievements')));
   $('.brand').addEventListener('click', () => select('about'));
   $('.list-close', list).addEventListener('click', closeList);
   $('.panel-close', panel).addEventListener('click', closePanel);
@@ -998,11 +1022,13 @@ function wireUi() {
     else closePanel();
   });
 
-  fetch(site.resume, { method: 'HEAD' })
-    .then((r) => {
-      resumeOk = r.ok;
-    })
-    .catch(() => {});
+  if (site.resume) {
+    fetch(site.resume, { method: 'HEAD' })
+      .then((r) => {
+        resumeOk = r.ok;
+      })
+      .catch(() => {});
+  }
 
   $('.brand-mark').replaceChildren(photo('brand-photo'));
 }
@@ -1029,6 +1055,22 @@ function setProgress(f) {
 async function boot() {
   const browserThai = (navigator.languages ?? [navigator.language]).some((l) => l?.toLowerCase().startsWith('th'));
   setLang(params.get('lang') ?? storage.get('lang') ?? (browserThai ? 'th' : 'en'), { remember: false });
+  if (festival) body.classList.add(`fest-${festival}`);
+  awards = createAchievements({
+    places,
+    festival,
+    el,
+    t,
+    tp,
+    iconImg,
+    track: count,
+    open: () => select('achievements'),
+    select,
+    onComplete: () => {
+      world?.launchFireworks(14);
+      select('achievements');
+    },
+  });
   initAnalytics({ code: site.analytics?.goatcounter, company, from: params.get('from') });
   wireUi();
 
@@ -1050,6 +1092,11 @@ async function boot() {
       onFlash,
       onProgress: setProgress,
       onSelect: (id) => (id ? select(id) : closePanel()),
+      festival,
+      bugsFixed: saved.bugs(),
+      onBug: (n) => track(`bug/${n}`),
+      onPet: (id) => awards.note(id),
+      onPumpkin: () => track('pumpkin'),
     });
     world.setNight(isNight, true);
   } catch (err) {
@@ -1058,29 +1105,33 @@ async function boot() {
     openList(whyNo3d(err));
   }
 
-  terminal = createTerminal({
-    places,
-    site,
-    company,
-    actions: {
-      open: (id) => select(id),
-      about: () => select('about'),
-      night: (on) => setNight(on),
-      blueprint: (on) => setBlueprint(on),
-      weather: (kind) => {
-        if (kind === 'live') {
-          setLive(true);
-          return syncWeather();
-        }
-        setWeather(kind);
-      },
-      fireworks: () => world?.launchFireworks(),
-      avatar: (file) => world?.setAvatar(file),
-      cv: printCv,
-      tour: () => startTour(),
-      hasWorld: () => Boolean(world),
+  // shared by the terminal and the DevTools console
+  const actions = {
+    open: (id) => select(id),
+    about: () => select('about'),
+    night: (on) => setNight(on),
+    blueprint: (on) => setBlueprint(on),
+    isBlueprint: () => isBlueprint,
+    weather: (kind) => {
+      if (kind === 'live') {
+        setLive(true);
+        return syncWeather();
+      }
+      setWeather(kind);
     },
-  });
+    fireworks: () => world?.launchFireworks(),
+    avatar: (file) => world?.setAvatar(file),
+    cv: printCv,
+    tour: () => startTour(),
+    contact: () => openContact(),
+    terminal: () => terminal.open(),
+    hasWorld: () => Boolean(world),
+    opened: () => awards.note('terminal'),
+    awards: () => awards.lines().map((a) => ({ ...a, name: t(`ach.${a.id}.name`) })),
+    resetAwards: () => awards.reset(),
+    bugsFixed: () => saved.bugs(),
+  };
+  terminal = createTerminal({ places, site, company, actions });
 
   tour = createTour({
     order: tourOrder,
@@ -1118,16 +1169,21 @@ async function boot() {
 
   setProgress(1);
   loader.classList.add('done');
-  setTimeout(() => loader.remove(), 600);
+  setTimeout(() => {
+    loader.remove();
+    awards.release(); // notices earned while loading (a night visit, say) show once the town is up
+  }, 600);
 
   // made while the visitor looks around, so the print dialog never waits on it
   (window.requestIdleCallback ?? setTimeout)(() => makeCvQr());
 
+  // the 404 page links to ?view=list
   const fromHash = decodeURIComponent(location.hash.slice(1));
   if (byId.has(fromHash)) select(fromHash);
+  else if (params.get('view') === 'list') openList();
   else if (world) showIntro();
 
-  console.log('%cHi, fellow developer', 'font: 600 14px system-ui; color: #ff6b4a', '\nThis town has a terminal. Press ` (backtick) to open it, or use the >_ button in the corner.');
+  consoleEgg({ site, places, company, actions, track });
 }
 
 boot();

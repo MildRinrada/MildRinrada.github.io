@@ -1,12 +1,15 @@
 // The secret terminal. Press ` (backtick) or the >_ button. Everything printed uses textContent.
 
+import { bugSpots } from './scenery.js';
+
 const AVATARS = ['female-a', 'female-b', 'female-c', 'female-d', 'female-e', 'female-f', 'male-a', 'male-b', 'male-c', 'male-d', 'male-e', 'male-f'];
-const BANNER = String.raw`
+export const SKYLINE = String.raw`
         _                 ___
    _   | |   ___    _    |   |
   | |__| |  |   |  | |   | # |   _
   | #  # |  | # |__| |___| # |__| |
- =================================
+ =================================`;
+const BANNER = `${SKYLINE}
   MildRinrada Town shell v1.0`;
 
 export function createTerminal({ places, site, company, actions }) {
@@ -63,6 +66,8 @@ export function createTerminal({ places, site, company, actions }) {
         ['contact', 'how to reach me'],
         ['cv', 'print a one-page CV'],
         ['tour', 'a one-minute guided tour'],
+        ['achievements [reset]', 'what you have found so far'],
+        ['bugs', 'a hint for the bug hunt'],
         ['sudo hire mild', ':)'],
         ['clear | exit', ''],
       ].forEach(([c, d]) => line(`  ${c.padEnd(40)}${d}`));
@@ -173,6 +178,25 @@ export function createTerminal({ places, site, company, actions }) {
         actions.tour();
       }, 300);
     },
+    achievements(arg) {
+      if (arg === 'reset') {
+        actions.resetAwards();
+        return line('Progress cleared. Reload the page to let the bugs back out.', 'ln-ok');
+      }
+      const list = actions.awards();
+      const core = list.filter((a) => !a.seasonal);
+      line(`Achievements ${core.filter((a) => a.done).length}/${core.length}`, 'ln-head');
+      for (const a of list) line(`  [${a.done ? 'x' : ' '}] ${a.name}${a.seasonal ? '  (this season only)' : ''}`, a.done ? 'ln-ok' : '');
+      line("The trophy in the corner has a hint for each one. 'achievements reset' starts over.", 'ln-dim');
+    },
+    bugs() {
+      const fixed = actions.bugsFixed();
+      const left = bugSpots.filter((_, i) => !fixed.includes(i));
+      if (!left.length) return line(`All ${bugSpots.length} bugs fixed. QA approved.`, 'ln-ok');
+      line(`${fixed.length}/${bugSpots.length} bugs fixed.`, 'ln-head');
+      line(`Hint: ${left[Math.floor(Math.random() * left.length)].hint}`);
+      line('Click a bug to fix it. Blueprint mode makes them easier to spot.', 'ln-dim');
+    },
     cv() {
       line('Opening the print dialog…', 'ln-ok');
       setTimeout(() => actions.cv(), 300);
@@ -255,6 +279,7 @@ export function createTerminal({ places, site, company, actions }) {
   }
 
   function open() {
+    actions.opened?.();
     root.classList.add('open');
     root.inert = false;
     toggleBtn?.setAttribute('aria-expanded', 'true');
