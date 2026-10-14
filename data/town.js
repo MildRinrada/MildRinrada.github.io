@@ -138,7 +138,7 @@ export const places = [
       { kind: 'data', items: ['PostgreSQL', 'Redis'] },
     ],
     links: { live: '', repo: '' },
-    media: gallery('fictionthai', 3),
+    media: gallery('fictionthai', 4),
   },
   {
     // Written from C:\Customer Service Github (README, docs/architecture.md, docs/features, docs/security).

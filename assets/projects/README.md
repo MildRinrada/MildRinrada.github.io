@@ -6,7 +6,7 @@ Every project has its own folder, already filled with templates:
 assets/projects/
   kawaiibake/        01.png  02.png  03.png  04.png
   customer-service/  demo.mp4  01.png  02.png  03.png  04.png   ← demo.mp4 plays first
-  fictionthai/       01.png  02.png  03.png
+  fictionthai/       01.png  02.png  03.png  04.png
   securesight/       01.png  02.png  03.png
   happy-paws-clinic/ 01.png  02.png  03.png
   mewbark-ai/        01.png  02.png  03.png
